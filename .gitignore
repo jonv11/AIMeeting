@@ -1,0 +1,305 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+*.suo
+*.user
+*.userosscache
+
+# Visual Studio 2015/2017 cache/options
+.cache/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# NuGet Package Manager
+.nuget/
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+
+# NuGet v3 lock files
+project.lock.json
+project.assets.json
+launchSettings.json
+
+# Misc
+*.swp
+*.swo
+*~
+.DS_Store
+*.orig
+*.bak
+
+# dotnet user secrets
+secrets.json
+user-secrets.json
+
+# Coverage reports
+coverage/
+*.coverage
+*.trx
+*.opencover.xml
+opencoverage.xml
+
+# Test results
+TestResults/
+*.coverage
+.coverage/
+
+# Local build artifacts
+artifacts/
+
+# Build logs
+*.log
+
+# Meeting results and artifacts
+meetings/
+transcripts/
+
+# Configuration backups
+*.backup
+*.bak
+
+# OS specific files
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.tmp~
+
+# Application specific
+logs/
+*.log
+appsettings.local.json
+appsettings.development.json
+
+# Copilot CLI
+.copilot/
+
+# Package files
+*.zip
+*.tar.gz
+*.rar
+
+# Compiled files
+*.pdb
+*.ilk
+
+# Native binaries
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Package directories
+packages/
+.packages/
+
+# Lock files (except for reproducible builds when needed)
+package-lock.json
+yarn.lock
+
+# IDE-specific directories
+.vscode/
+.idea/
+nbproject/
+.gradle/
+.m2/
+
+# Build artifacts
+out/
+dist/
+build/
+target/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Node modules (if using any Node-based tools)
+node_modules/
+
+# npm cache
+.npm
+npm-debug.log*
+yarn-error.log*
+
+# Uncommitted changes
+.changes/
+
+# Temporary test data
+test-data/
+test-results/
+
+# User preferences
+*.sublime-workspace
+*.sublime-project
+
+# Linting and formatting
+.flake8
+.pylintrc
+.jshintrc
+
+# Editor backups
+*~
+*.swp
+*.swo
+.~*
+
+# System files
+$RECYCLE.BIN/
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Jetbrains
+.idea/
+out/
+
+# Gradle
+.gradle/
+
+# Maven
+target/
+
+# SBT
+target/
+
+# Scala
+target/
+
+# IntelliJ IDEA
+*.iml
+*.iws
+*.ipr
+
+# NetBeans
+nbproject/private/
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+pom.xml.bak
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# pytest
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Anaconda
+anaconda-ks.cfg
+miniconda.sh
+
+# Virtual environments
+.venv
+.env
+venv/
+env/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Pyre type checker
+.pyre/
+
+# Misc
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Keep config examples but ignore local changes
+!config/agents/*.example.txt
+!config/meetings/*.example.json
+
+# Ignore local only agent files (keep examples)
+config/agents/*.local.txt
+
+# Ignore meeting outputs by default (but not examples)
+meetings/**/*
+!meetings/.gitkeep
+!meetings/examples/
+
+# Keep important files
+!.gitkeep
+!README.md
+!LICENSE
