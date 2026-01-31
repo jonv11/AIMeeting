@@ -2,7 +2,7 @@
 
 ## Overview
 
-AIMeeting provides both CLI and programmatic APIs for initiating and managing meetings. This document covers the primary interfaces for developers integrating AIMeeting into applications.
+AIMeeting is CLI-first for v0.1. This document describes internal interfaces used by the CLI and core services. These APIs are **not yet a stable public contract** and may change before v0.2.
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ var result = await orchestrator.RunMeetingAsync(
     CancellationToken.None);
 
 Console.WriteLine($"Meeting ended: {result.State}");
-Console.WriteLine($"Summary: {result.SummaryPath}");
+Console.WriteLine($"Transcript: {result.TranscriptPath}");
 ```
 
 ### IEventBus
@@ -121,11 +121,6 @@ public interface IMeetingRoom
     /// Lists all files in a directory within the meeting room.
     /// </summary>
     Task<IEnumerable<string>> ListFilesAsync(string relativeDirectory = "");
-    
-    /// <summary>
-    /// Searches for files containing specific content.
-    /// </summary>
-    Task<IEnumerable<string>> SearchContentAsync(string query);
     
     /// <summary>
     /// Acquires an exclusive lock on a file.
@@ -277,13 +272,6 @@ public interface IPromptBuilder
     /// Builds a prompt for the moderator agent.
     /// </summary>
     string BuildModeratorPrompt(MeetingContext context);
-    
-    /// <summary>
-    /// Builds a prompt for generating a meeting summary.
-    /// </summary>
-    string BuildSummaryPrompt(
-        IEnumerable<Message> messages,
-        MeetingConfiguration config);
 }
 ```
 
@@ -311,11 +299,6 @@ public interface ICopilotClient : IAsyncDisposable
         string prompt,
         CopilotOptions options = null,
         CancellationToken cancellationToken = default);
-    
-    /// <summary>
-    /// Estimates token count for the given text.
-    /// </summary>
-    Task<int> EstimateTokensAsync(string text);
 }
 ```
 
@@ -331,10 +314,7 @@ try
     // Generate a response
     var prompt = "You are a project manager. Respond to...";
     var response = await copilotClient.GenerateAsync(prompt);
-    
-    // Estimate tokens
-    var tokens = await copilotClient.EstimateTokensAsync(response);
-    Console.WriteLine($"Response uses ~{tokens} tokens");
+    Console.WriteLine($"Response: {response}");
 }
 finally
 {
@@ -368,24 +348,9 @@ public class MeetingConfiguration
     public MeetingLimits HardLimits { get; set; }
     
     /// <summary>
-    /// Strategy for determining turn order.
+    /// Base directory for meeting artifacts (optional).
     /// </summary>
-    public TurnTakingStrategy TurnStrategy { get; set; } = TurnTakingStrategy.FIFO;
-    
-    /// <summary>
-    /// Base directory for meeting room.
-    /// </summary>
-    public string MeetingRoomBasePath { get; set; }
-    
-    /// <summary>
-    /// Whether agents can search artifacts.
-    /// </summary>
-    public bool EnableArtifactSearch { get; set; }
-    
-    /// <summary>
-    /// Logging level.
-    /// </summary>
-    public LogLevel LogLevel { get; set; } = LogLevel.Information;
+    public string OutputDirectory { get; set; }
 }
 ```
 
@@ -405,21 +370,6 @@ public class MeetingLimits
     /// Maximum total messages across all agents.
     /// </summary>
     public int? MaxTotalMessages { get; set; }
-    
-    /// <summary>
-    /// Maximum messages per individual agent.
-    /// </summary>
-    public int? MaxMessagesPerAgent { get; set; }
-    
-    /// <summary>
-    /// Maximum total tokens for the entire meeting.
-    /// </summary>
-    public int? MaxTokensTotal { get; set; }
-    
-    /// <summary>
-    /// Maximum time an agent has to respond.
-    /// </summary>
-    public TimeSpan? MaxTurnDuration { get; set; }
 }
 ```
 
@@ -459,11 +409,6 @@ public class MeetingContext
     /// When the meeting started.
     /// </summary>
     public DateTime StartedAt { get; set; }
-    
-    /// <summary>
-    /// Total tokens used so far.
-    /// </summary>
-    public int TotalTokensUsed { get; set; }
     
     /// <summary>
     /// Which agent is currently speaking (if any).
@@ -514,9 +459,7 @@ public enum MessageType
 {
     Statement,
     Question,
-    Response,
-    Summary,
-    ActionItem
+    Response
 }
 ```
 
@@ -553,29 +496,19 @@ public class MeetingResult
     public int MessageCount { get; set; }
     
     /// <summary>
-    /// Total tokens used.
-    /// </summary>
-    public int TokensUsed { get; set; }
-    
-    /// <summary>
     /// Path to the transcript file.
     /// </summary>
     public string TranscriptPath { get; set; }
     
     /// <summary>
-    /// Path to the summary file.
+    /// Path to the meeting metadata file.
     /// </summary>
-    public string SummaryPath { get; set; }
+    public string MeetingMetadataPath { get; set; }
     
     /// <summary>
-    /// Extracted action items.
+    /// Path to the error log file (if any).
     /// </summary>
-    public List<string> ActionItems { get; set; }
-    
-    /// <summary>
-    /// Message count per agent.
-    /// </summary>
-    public Dictionary<string, int> AgentParticipation { get; set; }
+    public string ErrorLogPath { get; set; }
 }
 ```
 
@@ -600,11 +533,6 @@ public enum MeetingState
     /// Meeting is actively running.
     /// </summary>
     InProgress,
-    
-    /// <summary>
-    /// Meeting is paused (reserved for future).
-    /// </summary>
-    Paused,
     
     /// <summary>
     /// Meeting is wrapping up and generating artifacts.
@@ -664,8 +592,7 @@ try
         HardLimits = new MeetingLimits
         {
             MaxDurationMinutes = 30,
-            MaxTotalMessages = 50,
-            MaxTokensTotal = 50000
+            MaxTotalMessages = 50
         }
     };
     
@@ -678,14 +605,6 @@ try
     Console.WriteLine($"Duration: {result.Duration}");
     Console.WriteLine($"Messages: {result.MessageCount}");
     Console.WriteLine($"Transcript: {result.TranscriptPath}");
-    Console.WriteLine($"Summary: {result.SummaryPath}");
-    
-    // Print action items
-    Console.WriteLine("\nAction Items:");
-    foreach (var item in result.ActionItems)
-    {
-        Console.WriteLine($"  - {item}");
-    }
 }
 finally
 {
@@ -716,7 +635,7 @@ eventBus.Subscribe<MeetingStartedEvent>(async (evt) =>
 // Track when meeting ends
 eventBus.Subscribe<MeetingEndedEvent>(async (evt) =>
 {
-    Console.WriteLine($"Meeting ended!");
+    Console.WriteLine("Meeting ended!");
     Console.WriteLine($"Reason: {evt.EndReason}");
     Console.WriteLine($"Total turns: {turnCount}");
 });
@@ -734,20 +653,6 @@ var meetingRoom = serviceProvider.GetRequiredService<IMeetingRoom>();
 var transcript = await meetingRoom.ReadFileAsync("transcript.md");
 Console.WriteLine("Transcript:");
 Console.WriteLine(transcript);
-
-// Read summary
-var summary = await meetingRoom.ReadFileAsync("summary.md");
-Console.WriteLine("\nSummary:");
-Console.WriteLine(summary);
-
-// Read action items
-var actionItems = await meetingRoom.ReadFileAsync("action_items.md");
-Console.WriteLine("\nAction Items:");
-Console.WriteLine(actionItems);
-
-// Search for specific content
-var decisions = await meetingRoom.SearchContentAsync("decision");
-Console.WriteLine($"\nFound {decisions.Count()} mentions of 'decision'");
 
 // List all files
 var files = await meetingRoom.ListFilesAsync();
@@ -787,11 +692,11 @@ public class FileLockException : AgentMeetingException
     public string RequestedByAgentId { get; }
     
 public class CopilotApiException : AgentMeetingException
-    // Copilot SDK/CLI error
+    // Copilot CLI error
     
 public class MeetingLimitExceededException : AgentMeetingException
     // Hard limit reached
-    public string LimitType { get; }  // "Time", "Messages", "Tokens"
+    public string LimitType { get; }  // "Time", "Messages"
 ```
 
 ### Handling Exceptions
@@ -854,7 +759,6 @@ public class MeetingEndingEvent
 public class MeetingEndedEvent 
 { 
     public string EndReason { get; set; }
-    public MeetingSummary Summary { get; set; }
 }
 
 // Turn management
@@ -943,10 +847,8 @@ var config = new MeetingConfiguration
 {
     HardLimits = new MeetingLimits
     {
-        MaxDurationMinutes = 30,      // ~15-20 min typical for 3-4 agents
-        MaxTotalMessages = 50,         // ~10-15 messages per agent
-        MaxTokensTotal = 50000,        // ~10-15K tokens per agent
-        MaxTurnDuration = TimeSpan.FromSeconds(30)  // Copilot response time
+        MaxDurationMinutes = 30,
+        MaxTotalMessages = 50
     }
 };
 ```
@@ -981,9 +883,7 @@ var metadata = new
     result.State,
     result.EndReason,
     Duration = result.Duration.TotalSeconds,
-    result.MessageCount,
-    result.TokensUsed,
-    result.AgentParticipation
+    result.MessageCount
 };
 
 var json = JsonSerializer.Serialize(metadata, new JsonSerializerOptions 

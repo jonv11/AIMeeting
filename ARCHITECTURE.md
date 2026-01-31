@@ -49,11 +49,10 @@ AIMeeting is a modular, event-driven system for orchestrating multi-agent meetin
      └──────────────┴─────────────┴──────────────┘
                     │
         ┌───────────▼────────────┐
-        │   GitHub Copilot SDK   │
-        │   - Session management  │
-        │   - Event handling      │
-        │   - CLI communication   │
-        └──────────────────────────┘
+        │ GitHub Copilot CLI     │
+        │ - Prompt execution     │
+        │ - CLI communication    │
+        └────────────────────────┘
 ```
 
 ## Component Architecture
@@ -64,14 +63,14 @@ AIMeeting is a modular, event-driven system for orchestrating multi-agent meetin
 
 **Responsibilities**:
 - Parse command-line arguments
-- Load agent and meeting configurations
+- Load agent configurations
 - Display real-time meeting progress
 - Handle graceful shutdown on user interrupt
 
 **Key Classes**:
 - `Program.cs`: Application entry point
 - `Commands/StartMeetingCommand.cs`: Meeting initiation
-- `Commands/ListConfigsCommand.cs`: List available agents
+- `Commands/ListConfigsCommand.cs`: List available agents (optional for v0.1)
 - `Commands/ValidateConfigCommand.cs`: Validate configurations
 - `Display/MeetingProgressDisplay.cs`: Real-time meeting UI
 
@@ -84,7 +83,7 @@ AIMeeting is a modular, event-driven system for orchestrating multi-agent meetin
 **Responsibilities**:
 - Initialize meeting workspace
 - Load and instantiate agents
-- Enforce hard limits (time, message count, tokens)
+- Enforce hard limits (time, message count)
 - Coordinate agent turns
 - Generate final meeting artifacts
 
@@ -100,8 +99,8 @@ AIMeeting is a modular, event-driven system for orchestrating multi-agent meetin
    Initializing (loading agents, validation)
         ↓
    InProgress (agents taking turns)
-        ↓ (on moderator signal or limit hit)
-   EndingGracefully (gathering final artifacts)
+        ↓ (on limit hit or cancellation)
+   EndingGracefully (finalizing artifacts)
         ↓
     Completed/Failed
 ```
@@ -125,7 +124,7 @@ public abstract class AgentBase
         MeetingContext context);
 }
 
-// Standard agent using Copilot
+// Standard agent using Copilot CLI
 public class StandardAgent : AgentBase
 {
     private readonly ICopilotClient _copilotClient;
@@ -136,15 +135,6 @@ public class StandardAgent : AgentBase
 public class ModeratorAgent : AgentBase
 {
     public Task<bool> ShouldEndMeetingAsync(MeetingContext context);
-    public Task<MeetingSummary> GenerateSummaryAsync();
-}
-
-// Special agent for transcription
-public class ScribeAgent : AgentBase
-{
-    // Maintains detailed transcript
-    // Extracts key decisions
-    // Documents action items
 }
 ```
 
@@ -172,7 +162,7 @@ public class TurnCompletedEvent { public string AgentId { get; set; } public str
 // Meeting control
 public class MeetingStartedEvent { public MeetingConfiguration Config { get; set; } }
 public class MeetingEndingEvent { public string Reason { get; set; } }
-public class MeetingEndedEvent { public MeetingSummary Summary { get; set; } }
+public class MeetingEndedEvent { public string EndReason { get; set; } }
 
 // File operations
 public class FileCreatedEvent { public string AgentId { get; set; } public string FilePath { get; set; } }
@@ -232,25 +222,16 @@ Each meeting gets an isolated file system space:
 ```
 meetings/
 └── 20260130_143022_payment_refactoring/
-    ├── config.json                    # Meeting config snapshot
+    ├── meeting.json                   # Meeting metadata snapshot
     ├── transcript.md                  # Real-time conversation
-    ├── summary.md                     # Final summary
-    ├── action_items.md                # Extracted items
-    ├── agents/                        # Agent-specific docs
-    │   ├── project_manager_notes.md
-    │   └── developer_notes.md
-    ├── artifacts/                     # Shared documents
-    │   └── architecture_proposal.md
-    └── .metadata/                     # System files
-        ├── events.log                 # Event stream
-        └── metrics.json               # Metrics
+    └── errors.log                     # Error details (if failures occur)
 ```
 
 **File Locking Strategy**:
 - Single lock per file
 - Timeout-based acquisition (no deadlock)
 - Automatic cleanup on disposal
-- Lock state maintained in `.metadata/locks.json`
+- Lock state maintained in memory for MVP
 
 ```csharp
 public interface IFileLocker
@@ -335,7 +316,7 @@ EXPERTISE_AREAS: Planning, Risk Management
 
 **Loading Process**:
 1. Parse configuration file with key-value pairs
-2. Validate required fields (ROLE, DESCRIPTION, PERSONA, INSTRUCTIONS)
+2. Validate required fields (ROLE, DESCRIPTION, INSTRUCTIONS)
 3. Build `AgentConfiguration` object
 4. Create agent instance via `AgentFactory`
 5. Store configuration snapshot in meeting room
@@ -361,11 +342,14 @@ public class PromptBuilder : IPromptBuilder
         sb.AppendLine($"## Your Role: {config.Role}");
         sb.AppendLine(config.Description);
         
-        // Persona traits
-        sb.AppendLine("## Your Persona:");
-        foreach (var trait in config.PersonaTraits)
+        // Persona traits (if provided)
+        if (config.PersonaTraits.Count > 0)
         {
-            sb.AppendLine($"- {trait}");
+            sb.AppendLine("## Your Persona:");
+            foreach (var trait in config.PersonaTraits)
+            {
+                sb.AppendLine($"- {trait}");
+            }
         }
         
         // Instructions
@@ -411,7 +395,7 @@ TurnCompletedEvent published to bus
     ↓
 FileSystem receives event (if applicable)
     │ - Updates transcript
-    │ - Records metrics
+    │ - Records metrics (future)
     │
 MeetingRoom receives event
     │ - Publishes FileModifiedEvent
@@ -441,7 +425,6 @@ eventBus.Subscribe<TurnCompletedEvent>(async (evt) =>
 eventBus.Subscribe<MeetingEndedEvent>(async (evt) =>
 {
     logger.LogInformation("Meeting ended: {Reason}", evt.EndReason);
-    // Generate final artifacts
 });
 ```
 
@@ -474,12 +457,12 @@ manager.GetNextAgent();  // → "agent1" (wraps)
 
 ### Future Strategies
 
-**Priority-Based**: 
+**Priority-Based** (v0.3+): 
 - Moderator always goes last
 - Experts prioritized when raising hand
 - General agents fill remaining slots
 
-**Dynamic**:
+**Dynamic** (v0.3+):
 - Agents "raise hand" based on relevance
 - Orchestrator routes to most appropriate agent
 - Enables interruption mechanism
@@ -563,11 +546,11 @@ public class FileLockException : AgentMeetingException
     // Contains FilePath, RequestedByAgentId
     
 public class CopilotApiException : AgentMeetingException
-    // Copilot SDK/CLI failure
+    // Copilot CLI failure
     
 public class MeetingLimitExceededException : AgentMeetingException
     // Hard limit reached
-    // Contains LimitType ("Time", "Messages", "Tokens")
+    // Contains LimitType ("Time", "Messages")
 ```
 
 ### Graceful Degradation
@@ -628,15 +611,15 @@ logger.LogInformation(
     topic, agents.Count);
 
 // Warning: Recoverable errors, degradation
-logger.LogWarning("Agent {AgentId} response exceeded token limit, truncating",
+logger.LogWarning("Agent {AgentId} response exceeded max length, truncating",
     agentId);
 
 // Error: Failed operations, agent errors
-logger.LogError(ex, "Failed to generate summary for {MeetingId}",
+logger.LogError(ex, "Failed to write transcript for {MeetingId}",
     meetingId);
 
 // Critical: System failures
-logger.LogCritical("Cannot initialize Copilot SDK: {Error}",
+logger.LogCritical("Cannot initialize Copilot CLI: {Error}",
     ex.Message);
 ```
 
@@ -725,10 +708,6 @@ public async Task WriteFileAsync(string relativePath, string content)
     if (!resolved.StartsWith(resolvedBase))
         throw new SecurityException("Cannot write outside meeting room");
     
-    // Validate: path in allowed list (optional)
-    if (_allowedPaths.Count > 0 && !_allowedPaths.Contains(relativePath))
-        throw new SecurityException("Path not in allowed list");
-    
     await File.WriteAllTextAsync(resolved, content);
 }
 ```
@@ -791,39 +770,9 @@ public async Task StartAsync(CancellationToken cancellationToken = default)
 }
 ```
 
-### 5. Rate Limiting
+### 5. Rate Limiting (Future)
 
-```csharp
-public class ThrottledCopilotClient : ICopilotClient
-{
-    private readonly SemaphoreSlim _concurrencyLimiter;
-    
-    public ThrottledCopilotClient(
-        ICopilotClient inner,
-        int maxConcurrentRequests = 3)
-    {
-        _inner = inner;
-        _concurrencyLimiter = new SemaphoreSlim(maxConcurrentRequests);
-    }
-    
-    public async Task<string> GenerateAsync(
-        string prompt,
-        CancellationToken cancellationToken = default)
-    {
-        // Limit concurrent requests
-        await _concurrencyLimiter.WaitAsync(cancellationToken);
-        
-        try
-        {
-            return await _inner.GenerateAsync(prompt, cancellationToken);
-        }
-        finally
-        {
-            _concurrencyLimiter.Release();
-        }
-    }
-}
-```
+Rate limiting will be considered in v0.3+ when concurrency support is added.
 
 ## Performance Considerations
 
@@ -848,7 +797,7 @@ public class ThrottledCopilotClient : ICopilotClient
 
 **Future Phases**:
 - Database-backed event log for multi-meeting scenarios
-- Connection pooling for Copilot SDK
+- Connection pooling for Copilot CLI
 - Caching for frequently-accessed configurations
 - Async file I/O for parallel artifact generation
 
@@ -857,10 +806,10 @@ public class ThrottledCopilotClient : ICopilotClient
 **Horizontal**:
 - Each meeting runs independently
 - No shared state between meetings
-- Can run multiple meetings in parallel (limited by Copilot API rate limits)
+- Multi-meeting concurrency planned for v0.3
 
 **Vertical**:
-- Agent response time is bottleneck (30s timeout + Copilot API latency)
+- Agent response time is bottleneck (Copilot CLI latency)
 - Meeting duration scales with agent count and message limit
 - Typical meeting: 3-5 agents × 5-10 min = 15-50 minutes
 

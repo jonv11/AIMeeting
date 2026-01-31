@@ -1,6 +1,6 @@
 # Extending AIMeeting
 
-This guide explains how to extend AIMeeting with custom agents, event handlers, turn strategies, and other features.
+This guide explains how to extend AIMeeting with custom agents, event handlers, turn strategies, and other features. Sections marked **[v0.2+]** or **[v0.3+]** refer to roadmap capabilities beyond the v0.1 MVP.
 
 ## Table of Contents
 
@@ -147,47 +147,6 @@ public class VotingAgent : AgentBase
         // Update vote tracking
     }
 }
-
-/// <summary>
-/// Agent that focuses on research and evidence gathering.
-/// </summary>
-public class ResearchAgent : AgentBase
-{
-    private readonly IMeetingRoom _meetingRoom;
-    private List<string> _references = new();
-    
-    protected override async Task<string> GenerateResponseAsync(
-        MeetingContext context,
-        CancellationToken cancellationToken)
-    {
-        // Search for relevant information
-        var searchQuery = ExtractSearchTermFromDiscussion(context.Messages);
-        var findings = await _meetingRoom.SearchContentAsync(searchQuery);
-        
-        // Generate research summary
-        var response = new StringBuilder();
-        response.AppendLine($"Research findings for '{searchQuery}':");
-        foreach (var finding in findings)
-        {
-            response.AppendLine($"- {finding}");
-            _references.Add(finding);
-        }
-        
-        // Save research notes
-        await _meetingRoom.WriteFileAsync(
-            $"agents/{AgentId}_research.md",
-            string.Join("\n", _references));
-        
-        return response.ToString();
-    }
-    
-    private string ExtractSearchTermFromDiscussion(List<Message> messages)
-    {
-        // Extract key terms from recent discussion
-        var lastMessage = messages.LastOrDefault()?.Content ?? "";
-        return lastMessage.Split().FirstOrDefault() ?? "findings";
-    }
-}
 ```
 
 ### Registering Custom Agents
@@ -219,12 +178,6 @@ public class CustomAgentFactory : IAgentFactory
                 _serviceProvider.GetRequiredService<IPromptBuilder>(),
                 _serviceProvider.GetRequiredService<ILogger<VotingAgent>>()),
             
-            "Research Agent" => new ResearchAgent(
-                agentId,
-                configuration,
-                _serviceProvider.GetRequiredService<IMeetingRoom>(),
-                _serviceProvider.GetRequiredService<ILogger<ResearchAgent>>()),
-            
             _ => new StandardAgent(
                 agentId,
                 configuration,
@@ -236,7 +189,7 @@ public class CustomAgentFactory : IAgentFactory
 }
 ```
 
-## Custom Turn Strategies
+## Custom Turn Strategies **[v0.3+]**
 
 ### Priority-Based Turn Strategy
 
@@ -274,15 +227,9 @@ public class PriorityBasedTurnManager : ITurnManager
     
     public bool HasAgents => _agentsByPriority.Count > 0;
 }
-
-// Usage
-var turnManager = new PriorityBasedTurnManager();
-turnManager.RegisterAgent("moderator", priority: 10);
-turnManager.RegisterAgent("expert", priority: 5);
-turnManager.RegisterAgent("general", priority: 1);
 ```
 
-### Dynamic Turn Strategy
+### Dynamic Turn Strategy **[v0.3+]**
 
 Route to agents based on relevance:
 
@@ -396,78 +343,9 @@ public class MeetingAnalytics
     
     private int EstimateTokens(string text) => text.Length / 4;
 }
-
-// Usage
-var analytics = new MeetingAnalytics();
-analytics.Subscribe(eventBus);
-
-// After meeting completes
-analytics.GenerateReport();
 ```
 
-### Custom Event Handler
-
-Create handlers for specific business logic:
-
-```csharp
-public class ConsensusDetector
-{
-    private readonly List<TurnCompletedEvent> _agreementChain = new();
-    
-    public void Subscribe(IEventBus eventBus)
-    {
-        eventBus.Subscribe<TurnCompletedEvent>(async evt =>
-        {
-            var sentiment = AnalyzeSentiment(evt.Message);
-            
-            if (sentiment == "agreement")
-            {
-                _agreementChain.Add(evt);
-                
-                // If 3+ agents agree in a row, signal consensus
-                if (_agreementChain.Count >= 3)
-                {
-                    await eventBus.PublishAsync(
-                        new ConsensusReachedEvent
-                        {
-                            Topic = ExtractTopic(evt.Message),
-                            AgreeingAgentIds = _agreementChain
-                                .Select(t => t.AgentId)
-                                .Distinct()
-                                .ToList()
-                        });
-                    
-                    _agreementChain.Clear();
-                }
-            }
-            else
-            {
-                _agreementChain.Clear();
-            }
-        });
-    }
-    
-    private string AnalyzeSentiment(string message)
-    {
-        // Implement sentiment analysis
-        if (message.Contains("agree") || message.Contains("sounds good"))
-            return "agreement";
-        if (message.Contains("disagree") || message.Contains("concern"))
-            return "disagreement";
-        return "neutral";
-    }
-    
-    private string ExtractTopic(string message) => message.Substring(0, 50);
-}
-
-public class ConsensusReachedEvent
-{
-    public string Topic { get; set; }
-    public List<string> AgreeingAgentIds { get; set; }
-}
-```
-
-## File System Extensions
+## File System Extensions **[v0.2+]**
 
 ### Custom Artifact Generation
 
@@ -533,17 +411,11 @@ public class MeetingRoomExtensions
     private List<string> ExtractActions(List<Message> messages) => new();
     private string FormatNextSteps(List<string> actions) => "";
 }
-
-public class Decision
-{
-    public string Text { get; set; }
-    public string AgentId { get; set; }
-}
 ```
 
 ## Prompt Engineering
 
-### Advanced Prompt Templates
+### Advanced Prompt Templates **[v0.2+]**
 
 Create sophisticated prompts for specialized scenarios:
 
@@ -581,43 +453,10 @@ public class AdvancedPromptBuilder : IPromptBuilder
         
         return sb.ToString();
     }
-    
-    public string BuildSynthesisPrompt(
-        List<Message> messages,
-        int turnCount)
-    {
-        var sb = new StringBuilder();
-        
-        sb.AppendLine("# Meeting Summary Generation");
-        sb.AppendLine();
-        
-        sb.AppendLine("## Discussion Points:");
-        var groupedByAgent = messages
-            .GroupBy(m => m.AgentId)
-            .OrderByDescending(g => g.Count());
-        
-        foreach (var agentGroup in groupedByAgent)
-        {
-            sb.AppendLine($"### {agentGroup.Key}:");
-            foreach (var msg in agentGroup.Take(3))
-            {
-                sb.AppendLine($"- {msg.Content.Substring(0, 100)}...");
-            }
-        }
-        
-        sb.AppendLine();
-        sb.AppendLine("## Generate:");
-        sb.AppendLine("1. Executive Summary (3-4 sentences)");
-        sb.AppendLine("2. Key Points (5-7 bullets)");
-        sb.AppendLine("3. Action Items (specific, assigned)");
-        sb.AppendLine("4. Next Steps");
-        
-        return sb.ToString();
-    }
 }
 ```
 
-## Integration Patterns
+## Integration Patterns **[v0.3+]**
 
 ### Integration with External Systems
 
@@ -636,8 +475,6 @@ public class ExternalSystemIntegration
     {
         // Gather artifacts
         var transcript = await _meetingRoom.ReadFileAsync("transcript.md");
-        var summary = await _meetingRoom.ReadFileAsync("summary.md");
-        var actionItems = await _meetingRoom.ReadFileAsync("action_items.md");
         
         // Create payload
         var payload = new
@@ -647,8 +484,6 @@ public class ExternalSystemIntegration
             duration = result.Duration.TotalSeconds,
             messageCount = result.MessageCount,
             transcript,
-            summary,
-            actionItems,
             generatedAt = DateTime.UtcNow
         };
         
@@ -663,16 +498,9 @@ public class ExternalSystemIntegration
         response.EnsureSuccessStatusCode();
     }
 }
-
-// Usage
-var integration = new ExternalSystemIntegration(httpClient, meetingRoom);
-var result = await orchestrator.RunMeetingAsync(config);
-await integration.PublishMeetingResultsAsync(
-    result,
-    "https://external-system.com/api");
 ```
 
-### Database Integration
+### Database Integration **[v0.3+]**
 
 ```csharp
 /// <summary>
@@ -697,9 +525,9 @@ public class DatabaseIntegration
         // Save to database
         const string sql = @"
             INSERT INTO Meetings (Id, Topic, State, Duration, MessageCount, 
-                TokensUsed, CreatedAt, Artifacts)
+                CreatedAt, Artifacts)
             VALUES (@id, @topic, @state, @duration, @messageCount, 
-                @tokensUsed, @createdAt, @artifacts)";
+                @createdAt, @artifacts)";
         
         using var cmd = _dbConnection.CreateCommand();
         cmd.CommandText = sql;
@@ -708,7 +536,6 @@ public class DatabaseIntegration
         cmd.Parameters.AddWithValue("@state", result.State.ToString());
         cmd.Parameters.AddWithValue("@duration", result.Duration.TotalSeconds);
         cmd.Parameters.AddWithValue("@messageCount", result.MessageCount);
-        cmd.Parameters.AddWithValue("@tokensUsed", result.TokensUsed);
         cmd.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
         cmd.Parameters.AddWithValue("@artifacts", 
             JsonSerializer.Serialize(artifactContents));
