@@ -1,0 +1,34 @@
+# CODEOWNERS file
+# This file defines who owns which parts of the codebase
+# Owners are automatically requested for review when someone opens a PR that modifies code they own
+
+# Default owner for everything in the repo
+* @jonv11
+
+# Documentation
+/docs/ @jonv11
+/README.md @jonv11
+/CONTRIBUTING.md @jonv11
+/ARCHITECTURE.md @jonv11
+
+# Core source code
+/src/AIMeeting.Core/ @jonv11
+/src/AIMeeting.CLI/ @jonv11
+/src/AIMeeting.Copilot/ @jonv11
+/src/AIMeeting.Infrastructure/ @jonv11
+
+# Tests
+/tests/ @jonv11
+
+# Configuration
+/config/ @jonv11
+/.github/ @jonv11
+
+# CI/CD
+/.github/workflows/ @jonv11
+
+# Agent configurations
+/config/agents/ @jonv11
+
+# Standards and guides
+/docs/guides/standards/ @jonv11

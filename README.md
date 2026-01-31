@@ -478,5 +478,7 @@ See [Product Roadmap](docs/guides/roadmap.md) for detailed feature timeline and 
 ---
 
 **Project Status**: v0.1.0 Released (January 31, 2026)  
+**Repository**: Public (https://github.com/jonv11/AIMeeting)  
+**License**: See [LICENSE](LICENSE)  
 **Last Updated**: January 31, 2026  
 **Maintained by**: [Your Team]
