@@ -1,8 +1,8 @@
 # Team Roles & Responsibilities
 
 **Project**: AIMeeting Multi-Agent Meeting System  
-**Purpose**: Define roles, responsibilities, and expectations for successful MVP delivery  
-**Last Updated**: January 30, 2026
+**Purpose**: Define roles, responsibilities, and expectations for project delivery (v0.1 MVP completed)  
+**Last Updated**: January 31, 2026
 
 ---
 

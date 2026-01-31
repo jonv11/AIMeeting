@@ -1,8 +1,8 @@
 # AIMeeting Project Roadmap
 
 **Project**: AIMeeting Multi-Agent Meeting System  
-**Current Phase**: v0.1 MVP Implementation Ready  
-**Last Updated**: January 30, 2026
+**Current Phase**: v0.1.0 Released  
+**Last Updated**: January 31, 2026
 
 ---
 
@@ -16,7 +16,7 @@ Enable organizations to conduct structured AI-powered discussions for complex de
 
 | Version | Phase | Target | Status |
 |---------|-------|--------|--------|
-| **v0.1.0** | MVP — Core Foundation | Week 9 | ✅ Ready to start |
+| **v0.1.0** | MVP — Core Foundation | Week 9 | ✅ Released (Jan 31, 2026) |
 | **v0.2.0** | Meeting Artifacts | Week 14 | ⏳ Planned |
 | **v0.3.0** | Robustness & Scale | Week 20 | ⏳ Planned |
 | **v0.4.0** | Advanced Features | Week 28 | ⏳ Planned |
@@ -28,7 +28,7 @@ Enable organizations to conduct structured AI-powered discussions for complex de
 
 **Goal**: Prove core value — multi-agent collaboration via CLI with configurable roles
 
-**Status**: ✅ Ready to start
+**Status**: ✅ Released (January 31, 2026)
 
 ### Features (MUST-HAVE)
 

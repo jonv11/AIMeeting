@@ -477,6 +477,6 @@ See [Product Roadmap](docs/guides/roadmap.md) for detailed feature timeline and 
 
 ---
 
-**Project Status**: Pre-release (v0.1.0 in development)  
+**Project Status**: v0.1.0 Released (January 31, 2026)  
 **Last Updated**: January 31, 2026  
 **Maintained by**: [Your Team]

@@ -1,6 +1,6 @@
-# Plan for v0.1 (based on repository evidence)
+# Plan for v0.1 (Completed)
 
-This plan consolidates v0.1 MVP requirements and implementation work items based strictly on repository documentation and current project state.
+This plan consolidated v0.1 MVP requirements and implementation work items based on repository documentation and project state. All work items have been completed and v0.1.0 was released on January 31, 2026.
 
 ## Evidence Sources
 

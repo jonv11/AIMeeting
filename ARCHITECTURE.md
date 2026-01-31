@@ -72,7 +72,6 @@ AIMeeting is a modular, event-driven system for orchestrating multi-agent meetin
 **Key Classes**:
 - `Program.cs`: Application entry point
 - `Commands/StartMeetingCommand.cs`: Meeting initiation
-- `Commands/ListConfigsCommand.cs`: List available agents (optional for v0.1)
 - `Commands/ValidateConfigCommand.cs`: Validate configurations
 - `Display/MeetingProgressDisplay.cs`: Real-time meeting UI
 
@@ -90,8 +89,7 @@ AIMeeting is a modular, event-driven system for orchestrating multi-agent meetin
 - Generate final meeting artifacts
 
 **Key Classes**:
-- `Orchestration/MeetingOrchestrator.cs`: Main coordination logic
-- `Orchestration/MeetingStateMachine.cs`: State management
+- `Orchestration/MeetingOrchestrator.cs`: Main coordination logic and state management
 - `Orchestration/FifoTurnManager.cs`: Turn sequencing
 
 **State Machine**:
@@ -818,5 +816,5 @@ Rate limiting will be considered in v0.3+ when concurrency support is added.
 ---
 
 **Version**: 1.0  
-**Last Updated**: January 30, 2026  
-**Status**: Active
+**Last Updated**: January 31, 2026  
+**Status**: Active (v0.1.0 Released)

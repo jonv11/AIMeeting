@@ -75,4 +75,4 @@ dotnet run --project src/AIMeeting.CLI -- \
 ---
 
 **Version**: 1.0  
-**Last Updated**: January 30, 2026
+**Last Updated**: January 31, 2026

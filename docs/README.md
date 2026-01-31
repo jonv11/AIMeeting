@@ -47,7 +47,7 @@ Tracking progress and planning:
 
 ### ✅ **QA & Testers**
 Quality and testing:
-- **[QA Consolidated Report](reports/2026-01-31/qa-status.md)** – QA status (see also: archive for older reports)
+- **[QA Consolidated Report](archive/qa-status.md)** – Historical QA status report
 - **[Test Execution Report](reports/2026-01-31/test-report.md)** – Test results
 - **[Testing Standards](guides/standards/testing.md)** – Testing best practices
 - **[Security Best Practices](guides/standards/security.md)** – Security testing
@@ -94,7 +94,6 @@ See **[reports/](reports/)** for status snapshots:
   - [Executive Summary](reports/2026-01-31/executive-summary.md)
   - [Implementation Report](reports/2026-01-31/implementation-report.md)
   - [Test Report](reports/2026-01-31/test-report.md)
-  - [QA Status](reports/2026-01-31/qa-status.md)
   - [Assessment](reports/2026-01-31/assessment.md)
   - [Visual Overview](reports/2026-01-31/visual-overview.md)
 - **[Older Reports](reports/index.md)** – Archive of previous status snapshots

@@ -1,8 +1,8 @@
 # AIMeeting CLI Quick Reference Guide
 
-## Current Status: v0.1 MVP Phase 1
+## Current Status: v0.1.0 Released
 ✅ **validate-config** command - Fully functional  
-⏳ **start-meeting** command - In development
+✅ **start-meeting** command - Fully functional
 
 ---
 
