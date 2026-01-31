@@ -2,6 +2,31 @@
 
 A CLI-based multi-agent meeting system where AI agents with different roles engage in structured discussions about specific topics. The system simulates real-world meetings with agents taking turns, sharing perspectives, and collaborating to reach conclusions.
 
+## 📚 Documentation
+
+**[→ Read the full documentation hub](docs/README.md)** for comprehensive guides, references, standards, and planning.
+
+### For New Contributors
+- 🚀 **[Getting Started](docs/learning/getting-started.md)** – First-time setup (5 min)
+- 🤝 **[Contributing Guide](CONTRIBUTING.md)** – How to contribute code
+- ❓ **[FAQ](docs/learning/faq.md)** – Common questions
+- 📏 **[Coding Standards](docs/guides/standards/)** – Best practices and requirements
+
+### For Developers
+- 📖 **[API Reference](docs/reference/api.md)** – Interfaces and usage
+- 🏗️ **[Architecture](ARCHITECTURE.md)** – System design and components
+- 🔧 **[CLI Guide](docs/guides/cli.md)** – Command-line reference
+- 📋 **[Roadmap](docs/guides/roadmap.md)** – Feature timeline
+
+### Documentation Organization
+- **[learning/](docs/learning/)** - Onboarding content for newcomers
+- **[guides/](docs/guides/)** - Task-oriented how-to documents
+- **[reference/](docs/reference/)** - API documentation and specifications
+- **[planning/](docs/planning/)** - Version planning and roadmaps
+- **[reports/](docs/reports/)** - Status reports and assessments
+
+---
+
 ## Features
 
 **[v0.1]** — MVP Features (Available in v0.1.0):
@@ -26,7 +51,7 @@ A CLI-based multi-agent meeting system where AI agents with different roles enga
 - **Multi-Provider Support**: OpenAI, Azure OpenAI, local models
 - **Dynamic Turn-Taking**: Voting, priority-based agent selection
 
-See [ROADMAP.md](ROADMAP.md) for complete feature timeline.
+See [Roadmap](docs/guides/roadmap.md) for complete feature timeline.
 
 ## Quick Start
 
@@ -71,7 +96,7 @@ dotnet run --project src/AIMeeting.CLI -- \
     --max-messages 50
 ```
 
-See [EXAMPLES.md](EXAMPLES.md) for more usage scenarios.
+See [Usage Examples](docs/reference/examples.md) for more scenarios.
 
 ## Project Structure
 
@@ -79,14 +104,20 @@ See [EXAMPLES.md](EXAMPLES.md) for more usage scenarios.
 AIMeeting/
 ├── README.md                           # This file
 ├── ARCHITECTURE.md                     # Detailed architecture documentation
-├── AGENT_CONFIGURATION_GUIDE.md        # Agent configuration reference
-├── API.md                              # API documentation
-├── EXTENDING.md                        # Extension guide
-├── EXAMPLES.md                         # Usage examples
 ├── LICENSE
 ├── .gitignore
 ├── .editorconfig
 ├── AIMeeting.sln
+│
+├── docs/                               # 📚 Documentation hub
+│   ├── README.md                       # Start here for all docs
+│   ├── reference/                      # Core references (API, config, extending)
+│   ├── guides/                         # How-to guides and best practices
+│   ├── guides/standards/               # Coding & testing standards
+│   ├── planning/                       # Version planning (v0.1, v0.2, etc.)
+│   ├── reports/                        # Status reports (timestamped)
+│   ├── learning/                       # Getting started, FAQ, roles
+│   └── archive/                        # Deprecated/old docs
 │
 ├── src/
 │   ├── AIMeeting.CLI/                  # Command-line interface
@@ -121,14 +152,11 @@ AIMeeting/
 │   ├── AIMeeting.Integration.Tests/
 │   └── AIMeeting.Copilot.Tests/
 │
-├── config/
-│   └── agents/                         # Agent configurations
-│       ├── project-manager.txt
-│       ├── senior-developer.txt
-│       └── ...
-│
-└── docs/                               # Additional documentation
-    └── (generated meeting artifacts)
+└── config/
+    └── agents/                         # Agent configurations
+        ├── project-manager.txt
+        ├── senior-developer.txt
+        └── ...
 ```
 
 ## Architecture Overview
@@ -195,7 +223,7 @@ MAX_MESSAGE_LENGTH: 500
 EXPERTISE_AREAS: Backend Architecture, Performance, Code Quality
 ```
 
-See [AGENT_CONFIGURATION_GUIDE.md](AGENT_CONFIGURATION_GUIDE.md) for complete reference.
+See [Agent Configuration Guide](docs/reference/agent-configuration.md) for complete reference.
 
 ### Meeting Configuration **[v0.2]**
 
@@ -257,7 +285,7 @@ var meetingRoom = serviceProvider.GetRequiredService<IMeetingRoom>();
 var content = await meetingRoom.ReadFileAsync("transcript.md");
 ```
 
-See [API.md](API.md) for complete API documentation.
+See [API Reference](docs/reference/api.md) for complete documentation.
 
 ## Extending
 
@@ -268,7 +296,7 @@ The system is designed to be extended:
 - **Event Handlers**: Subscribe to any event type
 - **File Operations**: Extend `IMeetingRoom`
 
-See [EXTENDING.md](EXTENDING.md) for detailed extension guide.
+See [Extending Guide](docs/reference/extending.md) for detailed extension guide.
 
 ## Naming Conventions
 
@@ -285,6 +313,8 @@ This project follows C# and .NET standards:
 | **Parameters** | camelCase | `agentId` |
 | **Local Variables** | camelCase | `currentAgent` |
 
+See [Naming Conventions Guide](docs/guides/standards/naming-conventions.md) for more details.
+
 ## Error Handling
 
 The system provides a hierarchy of specific exceptions:
@@ -297,6 +327,8 @@ The system provides a hierarchy of specific exceptions:
 - `MeetingLimitExceededException` - Hard limit reached
 
 All errors include contextual information for debugging and recovery.
+
+See [Error Handling Guide](docs/guides/standards/error-handling.md) for best practices.
 
 ## Logging
 
@@ -344,8 +376,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed security considerations.
 **Problem**: Agent configuration file has errors  
 **Solution**:
 - Check required fields: ROLE, DESCRIPTION, INSTRUCTIONS
-- Run validation: `aimeeting validate-config <file>`
-- See [AGENT_CONFIGURATION_GUIDE.md](AGENT_CONFIGURATION_GUIDE.md) for format
+- Run validation: `dotnet run --project src/AIMeeting.CLI -- validate-config <file>`
+- See [Agent Configuration Guide](docs/reference/agent-configuration.md) for format
 
 ### "Meeting timed out"
 **Problem**: Meeting exceeded configured duration  
@@ -365,7 +397,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed security considerations.
 **Problem**: No valid agent configurations found  
 **Solution**:
 - Ensure agent config files exist in `config/agents/`
-- Validate each config: `aimeeting validate-config <file>`
+- Validate each config: `dotnet run --project src/AIMeeting.CLI -- validate-config <file>`
 - Check file paths are correct in CLI arguments
 
 ### Build Errors
@@ -376,6 +408,10 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed security considerations.
 - Clean solution: `dotnet clean`
 
 ## FAQ
+
+For comprehensive FAQ, see [Frequently Asked Questions](docs/learning/faq.md).
+
+Quick answers:
 
 **Q: Do I need a paid Copilot subscription?**  
 A: Yes, GitHub Copilot CLI requires an active GitHub Copilot subscription.
@@ -399,7 +435,7 @@ A: Press Ctrl+C to cancel. Meeting artifacts are saved up to the cancellation po
 A: Recommended 2-6 agents for quality conversations. Technical limit is higher but response time increases with more agents.
 
 **Q: Can I use this with other AI models (not Copilot)?**  
-A: v0.1 supports GitHub Copilot CLI only. Multi-provider support (OpenAI, Azure, local models) is planned for v0.4. See [ROADMAP.md](ROADMAP.md).
+A: v0.1 supports GitHub Copilot CLI only. Multi-provider support (OpenAI, Azure, local models) is planned for v0.4. See [Roadmap](docs/guides/roadmap.md).
 
 **Q: Is there a web interface?**  
 A: Not in v0.1 (CLI only). Web UI is not currently on the roadmap but could be added based on community feedback.
@@ -433,10 +469,10 @@ Target: ≥80% code coverage (overall), critical paths higher (parser/validation
 **v0.4** (Planned): Advanced features - RAG integration, multi-provider support  
 **v1.0** (Planned): Production release - HTTP API, cloud deployment, hardening  
 
-See [ROADMAP.md](ROADMAP.md) for detailed feature timeline and version planning.
+See [Product Roadmap](docs/guides/roadmap.md) for detailed feature timeline and version planning.
 
 ---
 
 **Project Status**: Pre-release (v0.1.0 in development)  
-**Last Updated**: January 30, 2026  
+**Last Updated**: January 31, 2026  
 **Maintained by**: [Your Team]
