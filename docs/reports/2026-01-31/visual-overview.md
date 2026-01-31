@@ -367,7 +367,7 @@ LEGEND: ✅ Done | ⏳ In Progress | ⏸️ Deferred | ❌ Planned
 ║                                                            ║
 ║  Repository                                                ║
 ║  ──────────────────────────────────────────────────────── ║
-║  Branch:                                master            ║
+║  Branch:                                main              ║
 ║  Status:                                ✅ Ready          ║
 ║  Last Update:                           Jan 31, 2026      ║
 ║                                                            ║

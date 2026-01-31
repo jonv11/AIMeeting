@@ -30,7 +30,7 @@ A comprehensive guide to understanding Git workflows, version control strategies
 Independent lines of development. Allow parallel work without affecting others.
 
 ```
-main/master
+main
 ├── feature-1
 ├── feature-2
 └── hotfix
