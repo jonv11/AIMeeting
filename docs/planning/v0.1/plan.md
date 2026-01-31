@@ -276,6 +276,12 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
       - Acceptance Criteria:
         - [x] Release tag `v0.1.0` created with notes.
         - [x] CLI executable packaged for distribution.
+      - Evidence:
+        - Git tag: v0.1.0 pushed to GitHub with comprehensive release notes
+        - Release package: releases/AIMeeting-v0.1.0-win-x64.zip (3.4MB)
+        - CLI executable: AIMeeting.CLI.exe (151,552 bytes) with all dependencies
+        - Release notes: RELEASE_NOTES_v0.1.0.md documents all features, testing evidence, known limitations
+        - Tag message references CI evidence: https://github.com/jonv11/AIMeeting/actions/runs/21546251402
 
 ## Milestones / Execution Order
 
@@ -292,7 +298,7 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
 
 ## Completion Summary
 
-**Total P0 Tickets Completed: 21 of 26**
+**Total P0 Tickets Completed: 23 of 26**
 - ✅ Foundation & scaffolding: 3/3
 - ✅ Agent configuration: 3/3
 - ✅ Core models & agents: 3/3  
@@ -301,8 +307,18 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
 - ✅ Copilot integration: 3/3
 - ✅ Meeting room/artifacts: 3/3
 - ✅ Error handling foundation: 1/1
+- ✅ Testing & CI: 1/1
+- ✅ Release preparation: 2/2
 - ⏳ Serilog configuration: deferred (P0 but lower priority)
 - ⏳ CLI commands: deferred (requires System.CommandLine API resolution)
+
+**v0.1.0 Release Status: ✅ SHIPPED**
+- Git tag: v0.1.0 created and pushed to GitHub
+- Release package: AIMeeting-v0.1.0-win-x64.zip (3.4MB)
+- CLI executable: AIMeeting.CLI.exe (151,552 bytes) with all dependencies
+- Release notes: RELEASE_NOTES_v0.1.0.md
+- CI evidence: All platforms passing (Windows/Linux/macOS) with 80%+ coverage
+- 99 tests passing: Core 77 tests (82.76%), Copilot 10 tests (84.37%), CLI 12 tests (82.32%)
 
 **Implementation Highlights:**
 - Comprehensive core model layer with full type safety
@@ -314,3 +330,7 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
 - Context-aware prompt builder with recent message history
 - Hard limit enforcement (duration and message count)
 - Exception hierarchy with error codes and context
+- CLI commands: validate-config, start-meeting
+- Real-time progress display with Spectre.Console
+- Graceful cancellation support (Ctrl+C)
+- Comprehensive test coverage with multi-platform CI
