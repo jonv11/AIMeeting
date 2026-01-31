@@ -58,6 +58,27 @@ namespace AIMeeting.Core.Tests.Configuration
         }
 
         [Fact]
+        public void Validate_WithOnlyWarnings_ReturnsNoErrors()
+        {
+            var config = new AgentConfiguration
+            {
+                Role = "Developer",
+                Description = "Evaluates technical aspects",
+                Instructions = ["Consider complexity"]
+            };
+            var parseErrors = new List<ParseError>
+            {
+                new ParseError("Unknown header 'FOO'", 5, isWarning: true),
+                new ParseError("Unknown header 'BAR'", 7, isWarning: true)
+            };
+
+            var result = _validator.Validate(config, parseErrors);
+
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
+
+        [Fact]
         public void Validate_WithMultipleParseErrors_ReturnsAll()
         {
             var config = new AgentConfiguration();
@@ -72,6 +93,37 @@ namespace AIMeeting.Core.Tests.Configuration
 
             Assert.False(result.IsValid);
             Assert.Equal(3, result.Errors.Count);
+        }
+
+        [Fact]
+        public void Validate_WithWarningsAndErrors_ReturnsOnlyErrors()
+        {
+            var config = new AgentConfiguration();
+            var parseErrors = new List<ParseError>
+            {
+                new ParseError("Missing required field: ROLE", 1),
+                new ParseError("Unknown header 'CUSTOM_FIELD'", 5, isWarning: true)
+            };
+
+            var result = _validator.Validate(config, parseErrors);
+
+            Assert.False(result.IsValid);
+            Assert.Single(result.Errors);
+        }
+
+        [Fact]
+        public void Validate_PreservesLineNumbers()
+        {
+            var config = new AgentConfiguration();
+            var parseErrors = new List<ParseError>
+            {
+                new ParseError("Missing required field: ROLE", 42)
+            };
+
+            var result = _validator.Validate(config, parseErrors);
+
+            Assert.False(result.IsValid);
+            Assert.Equal(42, result.Errors[0].LineNumber);
         }
     }
 }

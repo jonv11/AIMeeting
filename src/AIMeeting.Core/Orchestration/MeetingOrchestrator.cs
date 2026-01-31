@@ -39,7 +39,9 @@ namespace AIMeeting.Core.Orchestration
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            var meetingId = GenerateMeetingId();
+            var meetingId = string.IsNullOrWhiteSpace(configuration.MeetingId)
+                ? GenerateMeetingId()
+                : configuration.MeetingId;
             var startTime = DateTime.UtcNow;
 
             try
@@ -176,6 +178,11 @@ namespace AIMeeting.Core.Orchestration
                     });
 
                     context.CurrentSpeakingAgentId = null;
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(cancellationToken);
                 }
 
                 // State: InProgress -> EndingGracefully -> Completed

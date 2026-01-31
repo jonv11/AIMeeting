@@ -23,6 +23,7 @@ dotnet run --project src/AIMeeting.CLI -- \
     --agents "config/agents/project-manager.txt" \
              "config/agents/senior-developer.txt" \
              "config/agents/security-expert.txt" \
+             "config/agents/moderator.txt" \
     --max-duration 20 \
     --max-messages 40
 ```

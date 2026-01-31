@@ -96,6 +96,8 @@ dotnet run --project src/AIMeeting.CLI -- \
     --max-messages 50
 ```
 
+Press Ctrl+C to cancel a meeting gracefully.
+
 See [Usage Examples](docs/reference/examples.md) for more scenarios.
 
 ## Project Structure
@@ -156,6 +158,8 @@ AIMeeting/
     └── agents/                         # Agent configurations
         ├── project-manager.txt
         ├── senior-developer.txt
+        ├── security-expert.txt
+        ├── moderator.txt
         └── ...
 ```
 

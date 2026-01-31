@@ -17,29 +17,33 @@ namespace AIMeeting.Core.Events
             if (@event == null)
                 throw new ArgumentNullException(nameof(@event));
 
+            List<Func<TEvent, Task>> handlersSnapshot;
+
             await _mutex.WaitAsync();
             try
             {
                 var eventType = typeof(TEvent);
-                if (_subscribers.TryGetValue(eventType, out var handlers))
+                if (!_subscribers.TryGetValue(eventType, out var handlers))
                 {
-                    // Create tasks for all handlers
-                    var tasks = handlers
-                        .Cast<Func<TEvent, Task>>()
-                        .Select(h => h(@event))
-                        .ToList();
-
-                    // Wait for all handlers to complete
-                    if (tasks.Count > 0)
-                    {
-                        await Task.WhenAll(tasks);
-                    }
+                    return;
                 }
+
+                handlersSnapshot = handlers
+                    .Cast<Func<TEvent, Task>>()
+                    .ToList();
             }
             finally
             {
                 _mutex.Release();
             }
+
+            if (handlersSnapshot.Count == 0)
+            {
+                return;
+            }
+
+            var tasks = handlersSnapshot.Select(h => h(@event));
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>

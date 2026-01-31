@@ -244,11 +244,63 @@ namespace AIMeeting.Core.Tests.Configuration
         }
 
         [Fact]
+        public void Parse_InvalidHeaderName_GeneratesError()
+        {
+            var content = """
+                ROLE!: Senior Developer
+                DESCRIPTION: Evaluates technical feasibility
+                INSTRUCTIONS:
+                - Consider complexity
+                """;
+
+            var result = _parser.Parse(content);
+
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, e => e.Message.Contains("Invalid header name"));
+        }
+
+        [Fact]
         public void Parse_EmptyContent_ReturnsFailure()
         {
             var result = _parser.Parse("");
 
             Assert.False(result.IsSuccess);
+        }
+
+        [Fact]
+        public void Parse_PersonaInlineValue_ParsesSingleItem()
+        {
+            var content = """
+                ROLE: Senior Developer
+                DESCRIPTION: Evaluates technical feasibility
+                PERSONA: Pragmatic and detail-oriented
+                INSTRUCTIONS:
+                - Consider complexity
+                """;
+
+            var result = _parser.Parse(content);
+
+            Assert.True(result.IsSuccess);
+            Assert.Single(result.Configuration.PersonaTraits);
+            Assert.Equal("Pragmatic and detail-oriented", result.Configuration.PersonaTraits[0]);
+        }
+
+        [Fact]
+        public void Parse_InstructionsSection_StopsAtNextHeader()
+        {
+            var content = """
+                ROLE: Senior Developer
+                DESCRIPTION: Evaluates technical feasibility
+                INSTRUCTIONS:
+                - Consider complexity
+                RESPONSE_STYLE: Technical
+                """;
+
+            var result = _parser.Parse(content);
+
+            Assert.True(result.IsSuccess);
+            Assert.Single(result.Configuration.Instructions);
+            Assert.Equal("Technical", result.Configuration.ResponseStyle);
         }
 
         [Fact]
@@ -357,6 +409,48 @@ namespace AIMeeting.Core.Tests.Configuration
             var result = await _parser.ParseAsync("/nonexistent/path/config.txt");
 
             Assert.False(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task ParseAsync_FileTooLarge_ReturnsFailure()
+        {
+            var tempFile = Path.GetTempFileName();
+            try
+            {
+                var content = new string('A', 65 * 1024);
+                await File.WriteAllTextAsync(tempFile, content, System.Text.Encoding.UTF8);
+
+                var result = await _parser.ParseAsync(tempFile);
+
+                Assert.False(result.IsSuccess);
+                Assert.Contains(result.Errors, e => e.Message.Contains("File size exceeds maximum"));
+            }
+            finally
+            {
+                if (File.Exists(tempFile))
+                    File.Delete(tempFile);
+            }
+        }
+
+        [Fact]
+        public async Task ParseAsync_InvalidUtf8_ReturnsFailure()
+        {
+            var tempFile = Path.GetTempFileName();
+            try
+            {
+                var invalidBytes = new byte[] { 0xFF, 0xFE, 0xFD };
+                await File.WriteAllBytesAsync(tempFile, invalidBytes);
+
+                var result = await _parser.ParseAsync(tempFile);
+
+                Assert.False(result.IsSuccess);
+                Assert.NotEmpty(result.Errors);
+            }
+            finally
+            {
+                if (File.Exists(tempFile))
+                    File.Delete(tempFile);
+            }
         }
     }
 }

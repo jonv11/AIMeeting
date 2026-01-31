@@ -1,5 +1,7 @@
 using System.CommandLine;
 using AIMeeting.CLI.Commands;
+using AIMeeting.CLI.Logging;
+using Serilog;
 
 namespace AIMeeting.CLI
 {
@@ -7,13 +9,21 @@ namespace AIMeeting.CLI
 	{
 		static int Main(string[] args)
 		{
-			var rootCommand = new RootCommand("AIMeeting - Multi-Agent Meeting System");
-			
-			rootCommand.Subcommands.Add(ValidateConfigCommandBuilder.BuildCommand());
-			// start-meeting command will be added in next phase
+			LoggingBootstrapper.Configure();
+			try
+			{
+				var rootCommand = new RootCommand("AIMeeting - Multi-Agent Meeting System");
+				
+				rootCommand.Subcommands.Add(ValidateConfigCommandBuilder.BuildCommand());
+				rootCommand.Subcommands.Add(StartMeetingCommandBuilder.BuildCommand());
 
-			var parseResult = rootCommand.Parse(args);
-			return parseResult.Invoke();
+				var parseResult = rootCommand.Parse(args);
+				return parseResult.Invoke();
+			}
+			finally
+			{
+				Log.CloseAndFlush();
+			}
 		}
 	}
 }

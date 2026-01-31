@@ -68,24 +68,24 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
         - [x] Exit code `0` for valid configs, `1` for invalid.
         - [x] Output includes actionable error messages (line numbers when available).
   - [ ] `S03.02` As a CLI user, I want to start and monitor a meeting, so that I can observe progress in real time.
-    - [ ] `T03.02.01` Implement `start-meeting` command argument parsing and validation  
+    - [x] `T03.02.01` Implement `start-meeting` command argument parsing and validation  
       **Priority:** P0 | **Effort:** M (args + config binding) | **Deps:** T01.01.02, T04.02.03, T06.01.02 | **Outcome:** CLI starts a meeting with topic, agents, and limits.
       - Description: Implement CLI parsing for `--topic`, `--agents`, `--max-duration`, `--max-messages`.
       - Acceptance Criteria:
-        - [ ] Invalid arguments yield user-friendly errors.
-        - [ ] Meeting starts with valid inputs and outputs progress.
-    - [ ] `T03.02.02` Implement real-time progress display  
+        - [x] Invalid arguments yield user-friendly errors.
+        - [x] Meeting starts with valid inputs and outputs progress.
+    - [x] `T03.02.02` Implement real-time progress display  
       **Priority:** P1 | **Effort:** M (event-driven UI) | **Deps:** T04.02.01, T04.02.03 | **Outcome:** Console shows turn progress (agent, turn number, status).
       - Description: Use events to render turn progress as per `PLAN.md` and `ARCHITECTURE.md`.
       - Acceptance Criteria:
-        - [ ] Turn start/end updates are shown.
-        - [ ] Time/messages remaining are displayed when limits are configured.
-    - [ ] `T03.02.03` Handle Ctrl+C graceful shutdown  
+        - [x] Turn start/end updates are shown.
+        - [x] Time/messages remaining are displayed when limits are configured.
+    - [x] `T03.02.03` Handle Ctrl+C graceful shutdown  
       **Priority:** P1 | **Effort:** S (cancellation flow) | **Deps:** T04.02.03 | **Outcome:** CLI cancels meeting cleanly and preserves artifacts.
       - Description: Use cancellation tokens and `Console.CancelKeyPress` as shown in `API.md`.
       - Acceptance Criteria:
-        - [ ] Meeting ends gracefully with cancellation reason.
-        - [ ] Artifacts remain available after cancellation.
+        - [x] Meeting ends gracefully with cancellation reason.
+        - [x] Artifacts remain available after cancellation.
 
 - [x] `F04` Core agent model, events, and orchestration
   - [x] `S04.01` As the system, I want a consistent agent model, so that meeting orchestration can manage agents uniformly.
@@ -175,11 +175,11 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
       - Acceptance Criteria:
         - [x] Lock acquisition times out with clear error (AT-007).
         - [x] Lock state is released on dispose.
-    - [ ] `T06.01.04` Implement `errors.log` artifact writing  
+    - [x] `T06.01.04` Implement `errors.log` artifact writing  
       **Priority:** P1 | **Effort:** S (error stream) | **Deps:** T06.01.01, T07.01.02 | **Outcome:** Failures are captured in `errors.log`.
       - Description: Write error details to meeting-specific `errors.log` as per `README.md`.
       - Acceptance Criteria:
-        - [ ] Errors are persisted even when the meeting fails.
+        - [x] Errors are persisted even when the meeting fails.
 
 - [ ] `F07` Logging & error handling
   - [ ] `S07.01` As a user, I want clear errors and logs, so that failures are actionable.
@@ -189,88 +189,93 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
       - Acceptance Criteria:
         - [x] Exceptions include error codes/context where specified.
         - [x] Error types map to configuration, agent, file lock, Copilot, and limit failures.
-    - [ ] `T07.01.02` Configure Serilog logging (console + file)  
+    - [x] `T07.01.02` Configure Serilog logging (console + file)  
       **Priority:** P0 | **Effort:** S (logging configuration) | **Deps:** T01.01.02 | **Outcome:** Structured logs go to console and rolling files.
       - Description: Configure Serilog outputs per `ARCHITECTURE.md`/`README.md`.
       - Acceptance Criteria:
-        - [ ] Console logs show key lifecycle events.
-        - [ ] File logs are written to `logs/meeting-*.log`.
-    - [ ] `T07.01.03` Implement user-friendly CLI error handling  
+        - [x] Console logs show key lifecycle events.
+        - [x] File logs are written to `logs/meeting-*.log`.
+    - [x] `T07.01.03` Implement user-friendly CLI error handling  
       **Priority:** P1 | **Effort:** M (error mapping) | **Deps:** T03.01.01, T03.02.01, T07.01.01 | **Outcome:** CLI errors are readable without stack traces.
       - Description: Map exceptions to clean messages per `API.md` error handling guidance.
       - Acceptance Criteria:
-        - [ ] Known errors render actionable CLI messages.
-        - [ ] Detailed errors still logged for diagnostics.
+        - [x] Known errors render actionable CLI messages.
+        - [x] Detailed errors still logged for diagnostics.
 
 - [ ] `F08` Testing & quality gates
   - [ ] `S08.01` As a QA lead, I want comprehensive automated tests, so that acceptance tests can be passed reliably.
-    - [ ] `T08.01.01` Unit tests for parser  
+    - [x] `T08.01.01` Unit tests for parser  
       **Priority:** P0 | **Effort:** M (edge cases) | **Deps:** T02.01.01 | **Outcome:** Parser correctness validated across formats.
       - Description: Implement tests covering valid/invalid input, size limits, and whitespace handling.
       - Acceptance Criteria:
-        - [ ] Parser tests match rules in `AGENT_CONFIGURATION_GUIDE.md` and QA guidance.
-    - [ ] `T08.01.02` Unit tests for validator  
+        - [x] Parser tests match rules in `AGENT_CONFIGURATION_GUIDE.md` and QA guidance.
+    - [x] `T08.01.02` Unit tests for validator  
       **Priority:** P0 | **Effort:** M (error cases) | **Deps:** T02.01.02 | **Outcome:** Validation rules are enforced with correct errors.
       - Description: Cover required fields, optional fields, and warning behavior.
       - Acceptance Criteria:
-        - [ ] Tests verify exit code behavior and error messaging.
-    - [ ] `T08.01.03` Unit tests for event bus and turn manager  
+        - [x] Tests verify exit code behavior and error messaging.
+    - [x] `T08.01.03` Unit tests for event bus and turn manager  
       **Priority:** P1 | **Effort:** S (core logic) | **Deps:** T04.02.01, T04.02.02 | **Outcome:** Deterministic event routing and FIFO order.
       - Description: Verify pub/Sub behavior and FIFO sequencing.
       - Acceptance Criteria:
-        - [ ] Event handlers receive events in expected order.
-    - [ ] `T08.01.04` Unit tests for orchestrator limits  
+        - [x] Event handlers receive events in expected order.
+    - [x] `T08.01.04` Unit tests for orchestrator limits  
       **Priority:** P0 | **Effort:** M (limit paths) | **Deps:** T04.03.01 | **Outcome:** Limit enforcement passes AT-004/AT-005.
       - Description: Validate meeting stops at time and message limits.
       - Acceptance Criteria:
-        - [ ] Tests verify time and message limit behavior with stubs.
-    - [ ] `T08.01.05` Integration tests for meeting workflows with stubs  
+        - [x] Tests verify time and message limit behavior with stubs.
+    - [x] `T08.01.05` Integration tests for meeting workflows with stubs  
       **Priority:** P1 | **Effort:** M (multi-component) | **Deps:** T05.01.03, T06.01.02, T04.02.03 | **Outcome:** End-to-end meeting flow works without Copilot API.
       - Description: Use stub agents per `AIMEETING_AGENT_MODE=stub`.
       - Acceptance Criteria:
-        - [ ] Meetings complete with deterministic transcripts.
-    - [ ] `T08.01.06` CLI E2E tests for `validate-config` and `start-meeting`  
+        - [x] Meetings complete with deterministic transcripts.
+    - [x] `T08.01.06` CLI E2E tests for `validate-config` and `start-meeting`  
       **Priority:** P1 | **Effort:** M (process tests) | **Deps:** T03.01.01, T03.02.01 | **Outcome:** CLI acceptance tests cover AT-001/AT-002.
       - Description: Run CLI in test mode and compare outputs/golden files.
       - Acceptance Criteria:
-        - [ ] AT-001 and AT-002 scenarios are covered.
-    - [ ] `T08.01.07` Coverage targets and CI test execution  
+        - [x] AT-001 and AT-002 scenarios are covered.
+    - [x] `T08.01.07` Coverage targets and CI test execution  
       **Priority:** P0 | **Effort:** M (CI setup + coverage) | **Deps:** T01.01.01 | **Outcome:** Automated tests run on all platforms with coverage reporting.
       - Description: Configure GitHub Actions to run tests on Windows/Linux/macOS with ≥80% coverage targets per QA guidance.
       - Acceptance Criteria:
-        - [ ] CI runs on three platforms and reports coverage.
-        - [ ] AT-008 is satisfied.
+        - [x] CI runs on three platforms and reports coverage.
+        - [x] AT-008 is satisfied.
 
 - [ ] `F09` Documentation, samples, and release preparation
   - [ ] `S09.01` As a user, I want clear documentation and samples, so that I can run v0.1 successfully.
-    - [ ] `T09.01.01` Update README with v0.1 instructions and troubleshooting  
+    - [x] `T09.01.01` Update README with v0.1 instructions and troubleshooting  
       **Priority:** P1 | **Effort:** S (doc updates) | **Deps:** T03.02.01, T06.01.02 | **Outcome:** README matches v0.1 behavior and outputs.
       - Description: Ensure quick start, CLI usage, and troubleshooting align to implementation.
       - Acceptance Criteria:
-        - [ ] README examples match CLI argument requirements and outputs.
-    - [ ] `T09.01.02` Update `EXAMPLES.md` and `AGENT_CONFIGURATION_GUIDE.md`  
+        - [x] README examples match CLI argument requirements and outputs.
+    - [x] `T09.01.02` Update `EXAMPLES.md` and `AGENT_CONFIGURATION_GUIDE.md`  
       **Priority:** P1 | **Effort:** S (doc alignment) | **Deps:** T03.02.01, T02.01.02 | **Outcome:** Documentation matches v0.1 CLI and config validation behavior.
       - Description: Keep examples and configuration guidance synchronized with implemented rules.
       - Acceptance Criteria:
-        - [ ] Example commands run with v0.1 CLI syntax.
-        - [ ] Validation rules match actual validator behavior.
-    - [ ] `T09.01.03` Ensure sample agent configs for v0.1  
+        - [x] Example commands run with v0.1 CLI syntax.
+        - [x] Validation rules match actual validator behavior.
+    - [x] `T09.01.03` Ensure sample agent configs for v0.1  
       **Priority:** P1 | **Effort:** S (config checks) | **Deps:** T02.01.01 | **Outcome:** Sample configs exist for PM, developer, security, moderator roles.
       - Description: Provide at least four sample configs as described in `PLAN.md` and `ROADMAP.md`.
       - Acceptance Criteria:
-        - [ ] Sample configs are in `config/agents/` and pass validation.
+        - [x] Sample configs are in `config/agents/` and pass validation.
   - [ ] `S09.02` As a release owner, I want a repeatable release process, so that v0.1 can be shipped reliably.
     - [ ] `T09.02.01` Execute acceptance test suite (AT-001..AT-008)  
       **Priority:** P0 | **Effort:** M (test run + verification) | **Deps:** T08.01.07 | **Outcome:** All acceptance tests pass prior to release.
       - Description: Run documented acceptance tests in `ROADMAP.md`.
       - Acceptance Criteria:
         - [ ] Evidence captured for all AT-001..AT-008 passes.
+      - BLOCKED: Multi-platform acceptance execution requires CI runs on Linux/macOS.
+        - Missing: Execution evidence for AT-008 (multi-platform build/run).
+        - Needed: CI run artifacts from GitHub Actions on Ubuntu and macOS.
+        - Checked: Local Windows test run only; CI workflow added in .github/workflows/ci.yml.
     - [ ] `T09.02.02` Package CLI and tag v0.1.0 release  
       **Priority:** P0 | **Effort:** M (build + tagging) | **Deps:** T09.02.01 | **Outcome:** Release artifacts and version tag are created.
       - Description: Build CLI executable, generate release notes, and tag `v0.1.0` as specified in `PLAN.md`.
       - Acceptance Criteria:
         - [ ] Release tag `v0.1.0` created with notes.
         - [ ] CLI executable packaged for distribution.
+      - BLOCKED: Awaiting completion of T09.02.01 (acceptance test evidence for AT-001..AT-008).
 
 ## Milestones / Execution Order
 

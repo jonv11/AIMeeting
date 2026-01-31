@@ -4,6 +4,26 @@ This document lists all agent configurations created based on the roles defined 
 
 ## Created Agent Configurations
 
+### v0.1 Sample Configurations
+
+These configurations align with the v0.1 CLI examples and documentation.
+
+- **project-manager.txt**
+   - Role: Project Manager
+   - Focus: Scope, timeline, stakeholder alignment
+
+- **senior-developer.txt**
+   - Role: Senior Developer
+   - Focus: Implementation feasibility, technical risks
+
+- **security-expert.txt**
+   - Role: Security Expert
+   - Focus: Threat modeling and security risks
+
+- **moderator.txt**
+   - Role: Moderator
+   - Focus: Facilitation, summaries, decision tracking
+
 ### Executive Leadership
 
 1. **product-strategist.txt**

@@ -159,6 +159,15 @@ Validate an agent configuration file via the CLI:
 dotnet run --project src/AIMeeting.CLI -- validate-config config/agents/your-agent.txt
 ```
 
+## v0.1 Sample Configurations
+
+The repository includes sample configurations aligned with v0.1 documentation:
+
+- `config/agents/project-manager.txt`
+- `config/agents/senior-developer.txt`
+- `config/agents/security-expert.txt`
+- `config/agents/moderator.txt`
+
 ## Troubleshooting Configuration Issues
 
 ### Agent Responds Off-Topic

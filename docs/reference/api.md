@@ -333,6 +333,11 @@ Defines the parameters for a meeting.
 public class MeetingConfiguration
 {
     /// <summary>
+    /// Optional meeting ID to use instead of auto-generation.
+    /// </summary>
+    public string? MeetingId { get; set; }
+
+    /// <summary>
     /// The main topic or question for the meeting.
     /// </summary>
     public string MeetingTopic { get; set; }
