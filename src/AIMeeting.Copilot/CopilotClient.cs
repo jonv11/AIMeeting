@@ -1,21 +1,17 @@
 namespace AIMeeting.Copilot
 {
-    using System.Diagnostics;
-    using System.Text;
     using AIMeeting.Core.Exceptions;
+    using GitHub.Copilot.SDK;
 
     /// <summary>
-    /// Implementation of ICopilotClient that wraps GitHub Copilot CLI.
+    /// Implementation of ICopilotClient that uses the GitHub Copilot SDK for .NET.
     /// </summary>
     public class CopilotClient : ICopilotClient
     {
-        private Process? _process;
-        private StreamWriter? _stdin;
-        private StreamReader? _stdout;
+        private GitHub.Copilot.SDK.CopilotClient? _sdkClient;
+        private CopilotSession? _session;
         private bool _isConnected;
         private readonly object _lock = new();
-        private const string CopilotExe = "gh";
-        private const string CopilotSubcommand = "copilot";
 
         /// <summary>
         /// Gets whether the Copilot client is currently connected.
@@ -32,7 +28,7 @@ namespace AIMeeting.Copilot
         }
 
         /// <summary>
-        /// Initializes the Copilot connection.
+        /// Initializes the Copilot connection using the GitHub Copilot SDK.
         /// </summary>
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
@@ -44,96 +40,34 @@ namespace AIMeeting.Copilot
 
             try
             {
-                var (exePath, prefixArgs) = ResolveCopilotCommand();
-
-                // Verify gh copilot is available
-                var verifyProcess = new Process
+                // Create the Copilot SDK client
+                _sdkClient = new GitHub.Copilot.SDK.CopilotClient(new CopilotClientOptions
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = exePath,
-                        Arguments = BuildArguments(prefixArgs, $"{CopilotSubcommand} --version"),
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
-                };
+                    LogLevel = "error", // Minimize SDK logging
+                    AutoStart = true
+                });
 
-                verifyProcess.Start();
-                var exitCode = await Task.Run(() => 
+                // Start the SDK client (this starts the copilot CLI in server mode)
+                await _sdkClient.StartAsync(cancellationToken);
+
+                // Create a persistent session for all requests
+                _session = await _sdkClient.CreateSessionAsync(new SessionConfig
                 {
-                    verifyProcess.WaitForExit(5000);
-                    return verifyProcess.ExitCode;
+                    Model = "gpt-4.1", // Default model
+                    Streaming = false // We'll handle responses synchronously
                 }, cancellationToken);
-
-                if (exitCode != 0)
-                {
-                    throw new CopilotApiException(
-                        "GitHub Copilot CLI not found or not properly installed. " +
-                        "Please visit https://github.com/github/copilot-cli for installation instructions.");
-                }
-
-                // Start the interactive copilot process
-                _process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = exePath,
-                        Arguments = BuildArguments(prefixArgs, $"{CopilotSubcommand} -s"),
-                        UseShellExecute = false,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
-                };
-
-                _process.Start();
-
-                _stdin = _process.StandardInput;
-                _stdout = _process.StandardOutput;
 
                 lock (_lock)
                 {
                     _isConnected = true;
                 }
             }
-            catch (Exception ex) when (!(ex is CopilotApiException))
+            catch (Exception ex)
             {
                 throw new CopilotApiException(
-                    $"Failed to initialize Copilot CLI: {ex.Message}",
+                    $"Failed to initialize Copilot SDK: {ex.Message}",
                     ex);
             }
-        }
-
-        private static (string exePath, string? prefixArgs) ResolveCopilotCommand()
-        {
-            var overridePath = Environment.GetEnvironmentVariable("AIMEETING_GH_PATH");
-            if (string.IsNullOrWhiteSpace(overridePath))
-            {
-                return (CopilotExe, null);
-            }
-
-            if (OperatingSystem.IsWindows() &&
-                (overridePath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) ||
-                 overridePath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase)))
-            {
-                var quoted = $"\"{overridePath}\"";
-                return ("cmd.exe", $"/c {quoted}");
-            }
-
-            return (overridePath, null);
-        }
-
-        private static string BuildArguments(string? prefixArgs, string arguments)
-        {
-            if (string.IsNullOrWhiteSpace(prefixArgs))
-            {
-                return arguments;
-            }
-
-            return $"{prefixArgs} {arguments}";
         }
 
         /// <summary>
@@ -149,28 +83,22 @@ namespace AIMeeting.Copilot
 
             try
             {
-                if (_stdin != null)
+                if (_session != null)
                 {
-                    _stdin.WriteLine("exit");
-                    _stdin.Flush();
-                    _stdin.Dispose();
+                    await _session.DisposeAsync();
+                    _session = null;
                 }
 
-                if (_process != null)
+                if (_sdkClient != null)
                 {
-                    await Task.Run(() =>
-                    {
-                        _process.WaitForExit(5000);
-                    });
-                    _process.Dispose();
+                    await _sdkClient.StopAsync();
+                    _sdkClient.Dispose();
+                    _sdkClient = null;
                 }
 
                 lock (_lock)
                 {
                     _isConnected = false;
-                    _process = null;
-                    _stdin = null;
-                    _stdout = null;
                 }
             }
             catch (Exception)
@@ -184,7 +112,7 @@ namespace AIMeeting.Copilot
         }
 
         /// <summary>
-        /// Generates a completion for the given prompt.
+        /// Generates a completion for the given prompt using the GitHub Copilot SDK.
         /// </summary>
         public async Task<string> GenerateAsync(
             string prompt,
@@ -194,37 +122,24 @@ namespace AIMeeting.Copilot
             if (string.IsNullOrWhiteSpace(prompt))
                 throw new ArgumentException("Prompt cannot be null or empty", nameof(prompt));
 
-            if (!IsConnected)
+            if (!IsConnected || _session == null)
                 throw new CopilotApiException("Copilot client is not connected. Call StartAsync first.");
 
             options ??= new CopilotOptions();
 
             try
             {
+                // Use a timeout cancellation token
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(options.Timeout);
 
-                // Send prompt to copilot
-                _stdin!.WriteLine(prompt);
-                _stdin.WriteLine("---END---");
-                _stdin.Flush();
+                // Send the message and wait for the response
+                var response = await _session.SendAndWaitAsync(
+                    new MessageOptions { Prompt = prompt },
+                    options.Timeout,
+                    cts.Token);
 
-                // Read response
-                var response = new StringBuilder();
-                string? line;
-
-                while ((line = await _stdout!.ReadLineAsync(cts.Token)) != null)
-                {
-                    if (line == "---END---")
-                        break;
-
-                    if (response.Length > 0)
-                        response.Append('\n');
-
-                    response.Append(line);
-                }
-
-                var result = response.ToString();
+                var result = response?.Data.Content ?? string.Empty;
 
                 // Apply max length if specified
                 if (options.MaxResponseLength.HasValue && result.Length > options.MaxResponseLength.Value)
