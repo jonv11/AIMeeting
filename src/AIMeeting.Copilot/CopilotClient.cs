@@ -44,13 +44,15 @@ namespace AIMeeting.Copilot
 
             try
             {
+                var (exePath, prefixArgs) = ResolveCopilotCommand();
+
                 // Verify gh copilot is available
                 var verifyProcess = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = CopilotExe,
-                        Arguments = $"{CopilotSubcommand} --version",
+                        FileName = exePath,
+                        Arguments = BuildArguments(prefixArgs, $"{CopilotSubcommand} --version"),
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -77,8 +79,8 @@ namespace AIMeeting.Copilot
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = CopilotExe,
-                        Arguments = $"{CopilotSubcommand} -s",
+                        FileName = exePath,
+                        Arguments = BuildArguments(prefixArgs, $"{CopilotSubcommand} -s"),
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
@@ -103,6 +105,35 @@ namespace AIMeeting.Copilot
                     $"Failed to initialize Copilot CLI: {ex.Message}",
                     ex);
             }
+        }
+
+        private static (string exePath, string? prefixArgs) ResolveCopilotCommand()
+        {
+            var overridePath = Environment.GetEnvironmentVariable("AIMEETING_GH_PATH");
+            if (string.IsNullOrWhiteSpace(overridePath))
+            {
+                return (CopilotExe, null);
+            }
+
+            if (OperatingSystem.IsWindows() &&
+                (overridePath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) ||
+                 overridePath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase)))
+            {
+                var quoted = $"\"{overridePath}\"";
+                return ("cmd.exe", $"/c {quoted}");
+            }
+
+            return (overridePath, null);
+        }
+
+        private static string BuildArguments(string? prefixArgs, string arguments)
+        {
+            if (string.IsNullOrWhiteSpace(prefixArgs))
+            {
+                return arguments;
+            }
+
+            return $"{prefixArgs} {arguments}";
         }
 
         /// <summary>
