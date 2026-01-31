@@ -30,9 +30,22 @@ AIMEETING_AGENT_MODE=stub dotnet test
 
 ## Development Workflow
 
+**IMPORTANT**: The `main` branch is protected. All changes must go through Pull Requests with:
+- ✅ At least 1 approval from a maintainer
+- ✅ All CI checks passing (Ubuntu, Windows, macOS)
+- ✅ Branch up-to-date with main
+- ✅ All conversations resolved
+
+Direct commits to `main` are blocked, even for repository owners.
+
 ### 1. Create a Feature Branch
 
 ```bash
+# Ensure you're on main and up-to-date
+git checkout main
+git pull origin main
+
+# Create your feature branch
 git checkout -b feature/your-feature-name
 ```
 
@@ -67,10 +80,18 @@ Follow these commit message guidelines:
 
 ### 5. Submit a Pull Request
 
-- Push your branch to your fork
-- Create a Pull Request on GitHub
+```bash
+# Push your feature branch
+git push origin feature/your-feature-name
+```
+
+- Create a Pull Request on GitHub targeting `main`
 - Fill out the PR template completely
 - Link any related issues
+- Wait for CI checks to pass (all 3 platforms must succeed)
+- Request review from a maintainer
+- Address any feedback and resolve all conversations
+- Once approved and all checks pass, a maintainer will merge your PR
 
 ## Project Standards
 
@@ -108,10 +129,17 @@ AIMEETING_AGENT_MODE=stub dotnet test
 
 ## Code Review Process
 
-1. **Automated Checks**: CI/CD pipeline runs tests and linters
-2. **Peer Review**: At least one maintainer reviews your code
-3. **Feedback**: Address review comments and requested changes
-4. **Approval**: Once approved, a maintainer will merge your PR
+1. **Automated Checks**: CI/CD pipeline runs on Ubuntu, Windows, and macOS
+   - All tests must pass with 80%+ coverage
+   - Build must succeed with no errors
+2. **Branch Protection**: GitHub enforces these rules automatically:
+   - 1 approving review required
+   - All status checks must pass
+   - Branch must be up-to-date with main
+   - All conversations must be resolved
+3. **Peer Review**: At least one maintainer reviews your code
+4. **Feedback**: Address review comments and requested changes
+5. **Merge**: Once all requirements are met, a maintainer merges your PR
 
 ## Documentation
 

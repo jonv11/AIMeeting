@@ -956,12 +956,15 @@ git checkout -b restored <commit-hash>
 
 ### ✅ DO
 
-- **Use branches** for all work, never push directly to main
+- **Use branches** for all work - Direct commits to main are blocked by branch protection
+- **Create Pull Requests** - Required for all changes to main (1 approval needed)
+- **Wait for CI checks** - All tests must pass on Ubuntu, Windows, and macOS
+- **Keep branch up-to-date** - Sync with main before merging (enforced)
+- **Resolve conversations** - Address all review comments (enforced)
 - **Write clear commit messages** explaining why, not what
 - **Keep commits small** - one logical change per commit
-- **Pull before push** - git pull origin main before pushing
-- **Review code** - at least one person should review
-- **Test before merging** - run tests locally and in CI
+- **Pull before push** - `git pull origin main` before starting work
+- **Test before merging** - run tests locally with `$env:AIMEETING_AGENT_MODE="stub"; dotnet test`
 - **Keep history clean** - use squash for work-in-progress commits
 - **Tag releases** - use semantic versioning
 - **Document process** - CONTRIBUTING.md explains workflow
@@ -969,14 +972,15 @@ git checkout -b restored <commit-hash>
 
 ### ❌ DON'T
 
-- **Push directly to main** - always use branches
+- **Push directly to main** - Blocked by branch protection (even for admins)
+- **Merge without approval** - At least one review required (enforced)
+- **Skip CI checks** - All platforms must pass (enforced)
+- **Ignore review comments** - Conversations must be resolved (enforced)
 - **Write vague commits** - "Fix", "Update", "WIP" unhelpful
-- **Large commits** - hard to review, hard to debug
-- **Merge without review** - at least one approval
+- **Large commits** - hard to review, hard to debug (keep under 500 lines)
 - **Force push to shared branches** - `git push --force` dangers
 - **Commit secrets** - use .gitignore and environment variables
-- **Ignore CI failures** - fix failing tests before merging
-- **Long-lived branches** - merge within days
+- **Long-lived branches** - merge within days, not weeks
 - **Duplicate work** - communicate about who's doing what
 - **Rewrite history** - don't rebase pushed commits
 
