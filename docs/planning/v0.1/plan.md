@@ -259,23 +259,23 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
       - Description: Provide at least four sample configs as described in `PLAN.md` and `ROADMAP.md`.
       - Acceptance Criteria:
         - [x] Sample configs are in `config/agents/` and pass validation.
-  - [ ] `S09.02` As a release owner, I want a repeatable release process, so that v0.1 can be shipped reliably.
-    - [ ] `T09.02.01` Execute acceptance test suite (AT-001..AT-008)  
+  - [x] `S09.02` As a release owner, I want a repeatable release process, so that v0.1 can be shipped reliably.
+    - [x] `T09.02.01` Execute acceptance test suite (AT-001..AT-008)  
       **Priority:** P0 | **Effort:** M (test run + verification) | **Deps:** T08.01.07 | **Outcome:** All acceptance tests pass prior to release.
       - Description: Run documented acceptance tests in `ROADMAP.md`.
       - Acceptance Criteria:
-        - [ ] Evidence captured for all AT-001..AT-008 passes.
-      - BLOCKED: Multi-platform acceptance execution requires CI runs on Linux/macOS.
-        - Missing: Execution evidence for AT-008 (multi-platform build/run).
-        - Needed: CI run artifacts from GitHub Actions on Ubuntu and macOS.
-        - Checked: Local Windows test run only; CI workflow added in .github/workflows/ci.yml.
-    - [ ] `T09.02.02` Package CLI and tag v0.1.0 release  
+        - [x] Evidence captured for all AT-001..AT-008 passes.
+      - Evidence: GitHub Actions run 21546251402 passed on Windows/Linux/macOS with 80%+ coverage thresholds.
+        - Core: 82.76% line coverage
+        - Copilot: 84.37% line coverage
+        - CLI: 82.32% line coverage
+        - CI run: https://github.com/jonv11/AIMeeting/actions/runs/21546251402
+    - [x] `T09.02.02` Package CLI and tag v0.1.0 release  
       **Priority:** P0 | **Effort:** M (build + tagging) | **Deps:** T09.02.01 | **Outcome:** Release artifacts and version tag are created.
       - Description: Build CLI executable, generate release notes, and tag `v0.1.0` as specified in `PLAN.md`.
       - Acceptance Criteria:
-        - [ ] Release tag `v0.1.0` created with notes.
-        - [ ] CLI executable packaged for distribution.
-      - BLOCKED: Awaiting completion of T09.02.01 (acceptance test evidence for AT-001..AT-008).
+        - [x] Release tag `v0.1.0` created with notes.
+        - [x] CLI executable packaged for distribution.
 
 ## Milestones / Execution Order
 
@@ -292,7 +292,7 @@ This plan consolidates v0.1 MVP requirements and implementation work items based
 
 ## Completion Summary
 
-**Total P0 Tickets Completed: 19 of 26**
+**Total P0 Tickets Completed: 21 of 26**
 - ✅ Foundation & scaffolding: 3/3
 - ✅ Agent configuration: 3/3
 - ✅ Core models & agents: 3/3  
