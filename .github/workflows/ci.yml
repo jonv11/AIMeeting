@@ -35,7 +35,7 @@ jobs:
       - name: Test with coverage
         run: |
           # Run Core and Integration tests with coverage threshold
-          dotnet test tests/AIMeeting.Core.Tests tests/AIMeeting.Integration.Tests --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=80 /p:ThresholdType=line
+          dotnet test --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=80 /p:ThresholdType=line --filter "FullyQualifiedName!~AIMeeting\.Copilot\.Tests"
           # Run Copilot tests separately without coverage collection (depends on external CLI dependency)
           dotnet test tests/AIMeeting.Copilot.Tests --no-build
 
