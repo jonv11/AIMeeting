@@ -17,6 +17,7 @@ Enable organizations to conduct structured AI-powered discussions for complex de
 | Version | Phase | Target | Status |
 |---------|-------|--------|--------|
 | **v0.1.0** | MVP — Core Foundation | Week 9 | ✅ Released (Jan 31, 2026) |
+| **v0.1.1** | Patch — Copilot SDK/CI | Week 9 | ✅ Released (Feb 1, 2026) |
 | **v0.2.0** | Meeting Artifacts | Week 14 | ⏳ Planned |
 | **v0.3.0** | Robustness & Scale | Week 20 | ⏳ Planned |
 | **v0.4.0** | Advanced Features | Week 28 | ⏳ Planned |
