@@ -52,9 +52,8 @@ namespace AIMeeting.Copilot.Tests
         [Fact]
         public async Task GenerateAsync_ReturnsResponse_WhenConnected()
         {
-            // This test now requires real SDK connection (skipped in CI when Copilot CLI unavailable)
-            // With SDK refactor, we can't mock internal fields anymore
-            // Test is covered by integration tests with real SDK
+            // SDK-backed implementation does not allow mocking internal transport.
+            // This test validates the not-connected behavior without external dependencies.
             var client = new CopilotClient();
 
             // Just verify the exception behavior when not connected
@@ -64,9 +63,8 @@ namespace AIMeeting.Copilot.Tests
         [Fact]
         public async Task GenerateAsync_Truncates_WhenMaxLengthProvided()
         {
-            // This test now requires real SDK connection (skipped in CI when Copilot CLI unavailable)
-            // With SDK refactor, we can't mock internal fields anymore
-            // Test truncation logic is covered by integration tests
+            // SDK-backed implementation does not allow mocking internal transport.
+            // This test validates the not-connected behavior without external dependencies.
             var client = new CopilotClient();
 
             // Just verify the exception behavior when not connected
