@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## Changelog Guidelines
+
+- **Single source of truth**: Use this file for release notes. Do not add separate `RELEASE_NOTES_*` files.
+- **Format**: Keep entries under the release header using these headings: Added, Changed, Fixed, Deprecated, Removed, Security.
+- **Dates**: Use ISO format $YYYY-MM-DD$.
+- **Scope**: Include user-visible changes, dependency/CI changes, and documentation updates that affect usage.
+- **Immutability**: Do not edit prior release entries except to correct factual errors.
+
 ## [v0.1.1] - 2026-02-01
 
 ### Changed

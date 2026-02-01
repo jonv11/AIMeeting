@@ -247,6 +247,7 @@ When making changes:
 - **Configuration changes**: Update `docs/reference/agent-configuration.md`
 - **CLI changes**: Update `docs/guides/cli.md`
 - **Architecture changes**: Update `ARCHITECTURE.md`
+- **User-visible or release changes**: Update `CHANGELOG.md` (single source of truth)
 
 ## Trust These Instructions
 
