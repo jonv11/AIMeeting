@@ -25,6 +25,7 @@ These standards should be reviewed before making significant contributions:
 These standards provide detailed guidance on specific topics:
 
 - **[Documentation Standards](documentation.md)** - Writing and maintaining documentation
+- **[Changelog Standards](documentation.md#changelog-standards)** - Release notes and version history
 - **[Markdown Guidelines](markdown.md)** - Markdown formatting conventions
 - **[AI Prompt Engineering](ai-prompt-engineering.md)** - Best practices for AI agent prompts
 - **[GitHub Repo Files](github-repo-files.md)** - Standard GitHub repository files

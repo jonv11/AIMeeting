@@ -149,6 +149,7 @@ When contributing code:
 - Add examples to `docs/reference/examples.md` if applicable
 - Update API documentation in `docs/reference/api.md` for public interfaces
 - Add entries to FAQ if introducing new concepts
+- Update [CHANGELOG.md](CHANGELOG.md) for user-visible changes, dependency/CI updates, or documentation changes that affect usage
 
 ## Questions?
 

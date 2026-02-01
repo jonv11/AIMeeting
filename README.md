@@ -17,6 +17,7 @@ A CLI-based multi-agent meeting system where AI agents with different roles enga
 - 🏗️ **[Architecture](ARCHITECTURE.md)** – System design and components
 - 🔧 **[CLI Guide](docs/guides/cli.md)** – Command-line reference
 - 📋 **[Roadmap](docs/guides/roadmap.md)** – Feature timeline
+- 🧾 **[Changelog](CHANGELOG.md)** – Release history
 
 ### Documentation Organization
 - **[learning/](docs/learning/)** - Onboarding content for newcomers
@@ -29,7 +30,7 @@ A CLI-based multi-agent meeting system where AI agents with different roles enga
 
 ## Features
 
-**[v0.1]** — MVP Features (Available in v0.1.0):
+**[v0.1]** — MVP Features (Available in v0.1.1):
 - **Structured AI Collaboration**: Enable multiple AI agents to discuss complex topics from different perspectives
 - **Configurable Roles**: Text-based configuration allows any role/personality without code changes
 - **Basic Transcript Generation**: Meeting conversations saved to transcript.md
@@ -477,8 +478,8 @@ See [Product Roadmap](docs/guides/roadmap.md) for detailed feature timeline and 
 
 ---
 
-**Project Status**: v0.1.0 Released (January 31, 2026)  
+**Project Status**: v0.1.1 Released (February 1, 2026)  
 **Repository**: Public (https://github.com/jonv11/AIMeeting)  
 **License**: See [LICENSE](LICENSE)  
-**Last Updated**: January 31, 2026  
+**Last Updated**: February 1, 2026  
 **Maintained by**: [Your Team]

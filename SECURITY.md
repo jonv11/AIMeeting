@@ -56,7 +56,7 @@ When contributing to AIMeeting, please follow these security guidelines:
 
 ## Known Security Considerations
 
-### v0.1.0 (Current)
+### v0.1.1 (Current)
 
 1. **GitHub Copilot CLI Dependency**
    - AIMeeting relies on GitHub Copilot CLI for AI responses

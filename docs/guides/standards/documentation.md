@@ -23,6 +23,24 @@ A comprehensive guide to understanding effective code comments, documentation pr
 
 ---
 
+## Changelog Standards
+
+The repository uses a single changelog file: [CHANGELOG.md](../../../CHANGELOG.md).
+
+### ✅ Required
+- **Single source of truth**: Do not create `RELEASE_NOTES_*` files.
+- **Structure**: Each release must include headings: Added, Changed, Fixed, Deprecated, Removed, Security (use only what applies).
+- **Dates**: Use ISO format $YYYY-MM-DD$.
+- **Scope**: Record user-visible behavior changes, dependency/CI updates, and documentation changes that affect usage.
+- **Order**: New releases go at the top. Do not reorder or rewrite past releases.
+
+### ❌ Avoid
+- Internal-only refactors with no behavioral impact
+- Duplicating entries in other files
+- Rewriting historical entries (only fix factual errors)
+
+---
+
 ## Core Principle: Good Code Explains Itself
 
 ```python

@@ -280,7 +280,7 @@ This plan consolidated v0.1 MVP requirements and implementation work items based
         - Git tag: v0.1.0 pushed to GitHub with comprehensive release notes
         - Release package: releases/AIMeeting-v0.1.0-win-x64.zip (3.4MB)
         - CLI executable: AIMeeting.CLI.exe (151,552 bytes) with all dependencies
-        - Release notes: RELEASE_NOTES_v0.1.0.md documents all features, testing evidence, known limitations
+        - Release notes: CHANGELOG.md documents all features, testing evidence, known limitations
         - Tag message references CI evidence: https://github.com/jonv11/AIMeeting/actions/runs/21546251402
 
 ## Milestones / Execution Order
@@ -316,7 +316,7 @@ This plan consolidated v0.1 MVP requirements and implementation work items based
 - Git tag: v0.1.0 created and pushed to GitHub
 - Release package: AIMeeting-v0.1.0-win-x64.zip (3.4MB)
 - CLI executable: AIMeeting.CLI.exe (151,552 bytes) with all dependencies
-- Release notes: RELEASE_NOTES_v0.1.0.md
+- Release notes: CHANGELOG.md
 - CI evidence: All platforms passing (Windows/Linux/macOS) with 80%+ coverage
 - 99 tests passing: Core 77 tests (82.76%), Copilot 10 tests (84.37%), CLI 12 tests (82.32%)
 

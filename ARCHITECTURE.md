@@ -816,5 +816,5 @@ Rate limiting will be considered in v0.3+ when concurrency support is added.
 ---
 
 **Version**: 1.0  
-**Last Updated**: January 31, 2026  
-**Status**: Active (v0.1.0 Released)
+**Last Updated**: February 1, 2026  
+**Status**: Active (v0.1.1 Released)

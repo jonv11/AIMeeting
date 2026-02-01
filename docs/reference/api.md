@@ -302,6 +302,8 @@ public interface ICopilotClient : IAsyncDisposable
 }
 ```
 
+**Implementation Note**: The default implementation uses the GitHub Copilot SDK for .NET and requires the GitHub Copilot CLI (`gh copilot`) to be installed and authenticated on the host machine. The SDK launches the CLI in server mode under the hood.
+
 **Usage**:
 ```csharp
 var copilotClient = serviceProvider.GetRequiredService<ICopilotClient>();
@@ -697,7 +699,7 @@ public class FileLockException : AgentMeetingException
     public string RequestedByAgentId { get; }
     
 public class CopilotApiException : AgentMeetingException
-    // Copilot CLI error
+    // Copilot SDK/CLI error
     
 public class MeetingLimitExceededException : AgentMeetingException
     // Hard limit reached
@@ -725,8 +727,8 @@ catch (AgentInitializationException ex)
 }
 catch (CopilotApiException ex)
 {
-    Console.Error.WriteLine("Failed to connect to Copilot CLI");
-    Console.Error.WriteLine("Make sure GitHub Copilot CLI is installed and in PATH");
+    Console.Error.WriteLine("Failed to connect to GitHub Copilot");
+    Console.Error.WriteLine("Make sure GitHub Copilot CLI is installed and authenticated (SDK depends on it)");
     return 1;
 }
 catch (MeetingLimitExceededException ex)
