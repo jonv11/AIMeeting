@@ -29,7 +29,7 @@ A CLI-based multi-agent meeting system where AI agents with different roles enga
 
 ## Features
 
-**[v0.1]** — MVP Features (Available in v0.1.0):
+**[v0.1]** — MVP Features (Available in v0.1.1):
 - **Structured AI Collaboration**: Enable multiple AI agents to discuss complex topics from different perspectives
 - **Configurable Roles**: Text-based configuration allows any role/personality without code changes
 - **Basic Transcript Generation**: Meeting conversations saved to transcript.md

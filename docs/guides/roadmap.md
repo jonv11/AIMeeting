@@ -1,8 +1,8 @@
 # AIMeeting Project Roadmap
 
 **Project**: AIMeeting Multi-Agent Meeting System  
-**Current Phase**: v0.1.0 Released  
-**Last Updated**: January 31, 2026
+**Current Phase**: v0.1.1 Released  
+**Last Updated**: February 1, 2026
 
 ---
 

@@ -18,7 +18,7 @@ assignees: ''
 ## Environment
 - **OS**: [e.g., Windows 11, Ubuntu 22.04, macOS 14]
 - **.NET Version**: [e.g., 8.0.1]
-- **AIMeeting Version**: [e.g., v0.1.0]
+- **AIMeeting Version**: [e.g., v0.1.1]
 
 ## Relevant Documentation
 <!-- Have you checked the documentation? -->

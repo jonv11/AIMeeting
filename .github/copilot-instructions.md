@@ -8,7 +8,7 @@ AIMeeting is a CLI-based multi-agent meeting orchestration system where AI agent
 - **Project Type**: Console application with library components
 - **Target Runtime**: .NET 8.0+ (cross-platform: Windows, Linux, macOS)
 - **Repository Size**: ~60 files, focused codebase
-- **Current Version**: v0.1.0 (Released January 31, 2026)
+- **Current Version**: v0.1.1 (Released February 1, 2026)
 - **Repository Status**: Public
 
 ## Build & Development Commands

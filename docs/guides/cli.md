@@ -1,6 +1,6 @@
 # AIMeeting CLI Quick Reference Guide
 
-## Current Status: v0.1.0 Released
+## Current Status: v0.1.1 Released
 ✅ **validate-config** command - Fully functional  
 ✅ **start-meeting** command - Fully functional
 
