@@ -17,6 +17,7 @@ A CLI-based multi-agent meeting system where AI agents with different roles enga
 - 🏗️ **[Architecture](ARCHITECTURE.md)** – System design and components
 - 🔧 **[CLI Guide](docs/guides/cli.md)** – Command-line reference
 - 📋 **[Roadmap](docs/guides/roadmap.md)** – Feature timeline
+- 🧾 **[Changelog](CHANGELOG.md)** – Release history
 
 ### Documentation Organization
 - **[learning/](docs/learning/)** - Onboarding content for newcomers
