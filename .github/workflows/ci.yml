@@ -36,8 +36,8 @@ jobs:
         run: |
           # Run all tests except Copilot with coverage threshold
           dotnet test --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=80 /p:ThresholdType=line --filter "FullyQualifiedName!~AIMeeting.Copilot.Tests"
-          # Run Copilot tests separately without threshold (depends on external CLI dependency)
-          dotnet test --no-build tests/AIMeeting.Copilot.Tests /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=0
+          # Run Copilot tests separately without coverage collection (depends on external CLI dependency)
+          dotnet test --no-build tests/AIMeeting.Copilot.Tests
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
