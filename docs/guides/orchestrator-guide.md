@@ -53,19 +53,60 @@ $env:AIMEETING_AGENT_MODE="stub"
 
 In stub mode, the orchestrator uses round-robin decisions and does not call Copilot.
 
+## Real Copilot Integration (v0.1.2)
+
+The orchestrator includes full prompt building and decision parsing logic for GitHub Copilot CLI integration:
+
+### Prompt Building
+- Meeting context (topic, phase, turn number)
+- Available agent list (excluding orchestrator itself)
+- Recent message history (last 5 messages)
+- JSON response format specification
+- Decision-making guidance
+
+### Decision Parsing
+- Extracts JSON from markdown code blocks
+- Validates required fields per decision type
+- Converts to type-safe `OrchestratorDecisionEvent`
+- Validates MeetingPhase enum values
+
+### Error Handling & Retry Logic
+- **3 retry attempts** with exponential backoff
+- Delay schedule: 500ms → 1000ms → 2000ms (capped at 5000ms)
+- Retries on Copilot call failures and JSON parse errors
+- Falls back to stub mode after exhausting retries
+- Console logging for retry attempts and failures
+
+### Integration Status
+- ✅ Prompt building implemented
+- ✅ JSON decision parsing implemented
+- ✅ Retry logic with exponential backoff
+- ⏳ Real Copilot CLI integration (pending Phase 5 testing)
+- ⏳ Manual testing with live LLM responses
+- ⏳ Prompt tuning based on decision quality
+
+To test with real Copilot CLI once integrated, ensure `AIMEETING_AGENT_MODE` is **not** set to `stub`.
+
 ## Troubleshooting
 
 **Orchestrator does not respond**
 - The turn manager will timeout after 30 seconds
 - The system falls back to FIFO for that turn
+- Check logs for retry attempt details
 
 **Invalid JSON responses**
-- Responses are validated by `OrchestratorResponseValidator`
-- Invalid responses should be retried or replaced by stub decision logic
+- The orchestrator automatically retries (up to 3 attempts)
+- Falls back to stub mode after failed retries
+- Check console output for specific parse errors
 
 **Meeting ends immediately**
 - Ensure non-orchestrator agents are provided
 - Orchestrator should not select itself as next agent
+
+**Copilot integration errors**
+- Verify GitHub Copilot CLI is installed and authenticated
+- Check network connectivity
+- Review retry attempt logs in console output
 
 ## Related Documentation
 
