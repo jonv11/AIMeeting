@@ -336,6 +336,14 @@ namespace AIMeeting.Core.Orchestration
                 if (orchestrator != null)
                 {
                     await orchestrator.StopAsync();
+                    
+                    // Output orchestrator metrics if available
+                    if (orchestrator is AIOrchestrator aiOrchestrator)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(aiOrchestrator.Metrics.GetSummary());
+                        Console.WriteLine();
+                    }
                 }
 
                 lock (_meetingLock)

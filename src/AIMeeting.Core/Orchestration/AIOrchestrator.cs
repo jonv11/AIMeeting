@@ -30,10 +30,18 @@ namespace AIMeeting.Core.Orchestration
         private const int InitialRetryDelayMs = 500;
         private const int MaxRetryDelayMs = 5000;
         
+        // Performance metrics
+        private readonly OrchestratorMetrics _metrics = new();
+        
         /// <summary>
         /// Unique identifier for this orchestrator.
         /// </summary>
         public string OrchestratorId { get; }
+        
+        /// <summary>
+        /// Performance metrics for this orchestrator.
+        /// </summary>
+        public OrchestratorMetrics Metrics => _metrics;
         
         /// <summary>
         /// Creates a new AI orchestrator.
@@ -108,18 +116,24 @@ namespace AIMeeting.Core.Orchestration
         private async Task<OrchestratorDecisionEvent> MakeDecisionAsync(
             OrchestratorTurnRequestEvent request)
         {
+            var startTime = DateTime.UtcNow;
+            _metrics.TotalDecisions++;
+            
             // Check if we're in stub mode
             var agentMode = Environment.GetEnvironmentVariable("AIMEETING_AGENT_MODE")?.ToLowerInvariant();
             
             if (agentMode == "stub" || _copilotClient == null)
             {
-                return MakeStubDecision(request);
+                var decision = MakeStubDecision(request);
+                RecordDecisionMetrics(decision, startTime, isStub: true, retries: 0);
+                return decision;
             }
             
             // Build orchestrator prompt with meeting context
             var prompt = BuildOrchestratorPrompt(request);
             
             // Retry logic with exponential backoff
+            int retryCount = 0;
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
                 try
@@ -128,10 +142,37 @@ namespace AIMeeting.Core.Orchestration
                     var response = await _copilotClient!.GetResponseAsync(prompt);
                     
                     // Parse and validate the decision
-                    return ParseDecision(response, request.MeetingId);
+                    var decision = ParseDecision(response, request.MeetingId);
+                    
+                    // Record success
+                    if (attempt == 1)
+                    {
+                        _metrics.SuccessfulFirstAttempts++;
+                    }
+                    else
+                    {
+                        _metrics.RetriedDecisions++;
+                    }
+                    
+                    RecordDecisionMetrics(decision, startTime, isStub: false, retries: retryCount);
+                    return decision;
                 }
                 catch (Exception ex) when (attempt < MaxRetries)
                 {
+                    // Track retry
+                    retryCount++;
+                    _metrics.TotalRetryAttempts++;
+                    
+                    // Track error type
+                    if (ex.Message.Contains("parse") || ex.Message.Contains("JSON"))
+                    {
+                        _metrics.JsonParseErrors++;
+                    }
+                    else
+                    {
+                        _metrics.ApiCallFailures++;
+                    }
+                    
                     // Calculate exponential backoff delay
                     var delayMs = Math.Min(InitialRetryDelayMs * (int)Math.Pow(2, attempt - 1), MaxRetryDelayMs);
                     Console.WriteLine($"Orchestrator attempt {attempt} failed: {ex.Message}. Retrying in {delayMs}ms...");
@@ -140,13 +181,31 @@ namespace AIMeeting.Core.Orchestration
                 catch (Exception ex)
                 {
                     // Final attempt failed, fall back to stub
+                    _metrics.TotalRetryAttempts++;
+                    _metrics.StubFallbacks++;
+                    
+                    // Track error type
+                    if (ex.Message.Contains("parse") || ex.Message.Contains("JSON"))
+                    {
+                        _metrics.JsonParseErrors++;
+                    }
+                    else
+                    {
+                        _metrics.ApiCallFailures++;
+                    }
+                    
                     Console.WriteLine($"Orchestrator failed after {MaxRetries} attempts: {ex.Message}. Falling back to stub mode.");
-                    return MakeStubDecision(request);
+                    var decision = MakeStubDecision(request);
+                    RecordDecisionMetrics(decision, startTime, isStub: true, retries: retryCount);
+                    return decision;
                 }
             }
             
             // Should never reach here, but fallback to stub for safety
-            return MakeStubDecision(request);
+            _metrics.StubFallbacks++;
+            var fallbackDecision = MakeStubDecision(request);
+            RecordDecisionMetrics(fallbackDecision, startTime, isStub: true, retries: retryCount);
+            return fallbackDecision;
         }
         
         /// <summary>
@@ -195,6 +254,36 @@ namespace AIMeeting.Core.Orchestration
         {
             // TODO: Phase 7 - Track state (hypotheses, decisions, etc.)
             return Task.CompletedTask;
+        }
+        
+        /// <summary>
+        /// Records metrics for a decision.
+        /// </summary>
+        private void RecordDecisionMetrics(
+            OrchestratorDecisionEvent decision,
+            DateTime startTime,
+            bool isStub,
+            int retries)
+        {
+            // Record timing
+            var elapsedMs = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
+            _metrics.TotalDecisionTimeMs += elapsedMs;
+            _metrics.MinDecisionTimeMs = Math.Min(_metrics.MinDecisionTimeMs, elapsedMs);
+            _metrics.MaxDecisionTimeMs = Math.Max(_metrics.MaxDecisionTimeMs, elapsedMs);
+            
+            // Record decision type
+            switch (decision.Type)
+            {
+                case DecisionType.ContinueMeeting:
+                    _metrics.ContinueDecisions++;
+                    break;
+                case DecisionType.ChangePhase:
+                    _metrics.PhaseChangeDecisions++;
+                    break;
+                case DecisionType.EndMeeting:
+                    _metrics.EndMeetingDecisions++;
+                    break;
+            }
         }
         
         /// <summary>
