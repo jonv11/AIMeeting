@@ -43,6 +43,8 @@ namespace AIMeeting.Core.Orchestration
                 ? GenerateMeetingId()
                 : configuration.MeetingId;
             var startTime = DateTime.UtcNow;
+            IOrchestratorDecisionMaker? orchestrator = null;
+            var endReason = "Meeting completed normally";
 
             try
             {
@@ -62,6 +64,11 @@ namespace AIMeeting.Core.Orchestration
                     _meetings[meetingId] = context;
                 }
 
+                // Detect orchestrator (optional)
+                orchestrator = await _agentFactory.DetectOrchestratorAsync(
+                    configuration.AgentConfigPaths,
+                    cancellationToken);
+
                 // Load and initialize agents
                 var agents = await _agentFactory.CreateAgentsAsync(
                     configuration.AgentConfigPaths,
@@ -73,10 +80,30 @@ namespace AIMeeting.Core.Orchestration
                         "No agents loaded from provided configuration paths");
                 }
 
+                ITurnManager activeTurnManager = _turnManager;
+                ITurnManager fallbackTurnManager = _turnManager;
+
+                // Initialize orchestrator if present
+                if (orchestrator != null)
+                {
+                    await orchestrator.InitializeAsync(context, _eventBus, cancellationToken);
+                    await orchestrator.StartAsync(cancellationToken);
+
+                    activeTurnManager = new OrchestratorDrivenTurnManager(
+                        _eventBus,
+                        orchestrator.OrchestratorId,
+                        meetingId,
+                        context);
+                }
+
                 // Register agents with turn manager
                 foreach (var agentId in agents.Keys)
                 {
-                    _turnManager.RegisterAgent(agentId);
+                    activeTurnManager.RegisterAgent(agentId);
+                    if (!ReferenceEquals(activeTurnManager, fallbackTurnManager))
+                    {
+                        fallbackTurnManager.RegisterAgent(agentId);
+                    }
                     context.Agents[agentId] = agents[agentId];
                 }
 
@@ -101,7 +128,7 @@ namespace AIMeeting.Core.Orchestration
 
                 // Run meeting turns
                 var turnNumber = 0;
-                while (_turnManager.HasAgents && !cancellationToken.IsCancellationRequested)
+                while (activeTurnManager.HasAgents && !cancellationToken.IsCancellationRequested)
                 {
                     turnNumber++;
 
@@ -111,6 +138,7 @@ namespace AIMeeting.Core.Orchestration
                     {
                         if (elapsedMinutes >= configuration.HardLimits.MaxDurationMinutes.Value)
                         {
+                            endReason = "Max duration exceeded";
                             await _eventBus.PublishAsync(new MeetingEndingEvent
                             {
                                 Reason = "Max duration exceeded"
@@ -123,6 +151,7 @@ namespace AIMeeting.Core.Orchestration
                     {
                         if (context.Messages.Count >= configuration.HardLimits.MaxTotalMessages.Value)
                         {
+                            endReason = "Max messages exceeded";
                             await _eventBus.PublishAsync(new MeetingEndingEvent
                             {
                                 Reason = "Max messages exceeded"
@@ -132,7 +161,45 @@ namespace AIMeeting.Core.Orchestration
                     }
 
                     // Get next agent
-                    var nextAgentId = _turnManager.GetNextAgent();
+                    string nextAgentId;
+                    try
+                    {
+                        nextAgentId = activeTurnManager.GetNextAgent();
+                    }
+                    catch (PhaseChangeRequestedException phaseChange)
+                    {
+                        var oldPhase = context.CurrentPhase;
+                        context.CurrentPhase = phaseChange.NewPhase;
+
+                        await _eventBus.PublishAsync(new PhaseChangeRequestedEvent
+                        {
+                            OldPhase = oldPhase,
+                            NewPhase = phaseChange.NewPhase,
+                            Reason = phaseChange.Rationale
+                        });
+
+                        await _eventBus.PublishAsync(new PhaseChangedEvent
+                        {
+                            OldPhase = oldPhase,
+                            NewPhase = phaseChange.NewPhase
+                        });
+
+                        continue;
+                    }
+                    catch (MeetingEndRequestedException endMeeting)
+                    {
+                        endReason = endMeeting.EndReason;
+                        await _eventBus.PublishAsync(new MeetingEndingEvent
+                        {
+                            Reason = endMeeting.EndReason
+                        });
+                        break;
+                    }
+                    catch (TimeoutException)
+                    {
+                        // Fallback to FIFO if orchestrator does not respond
+                        nextAgentId = fallbackTurnManager.GetNextAgent();
+                    }
                     var agent = (IAgent)context.Agents[nextAgentId];
 
                     // Check if agent should participate
@@ -190,7 +257,7 @@ namespace AIMeeting.Core.Orchestration
 
                 await _eventBus.PublishAsync(new MeetingEndedEvent
                 {
-                    EndReason = "Meeting completed normally"
+                    EndReason = endReason
                 });
 
                 context.State = MeetingState.Completed;
@@ -200,7 +267,7 @@ namespace AIMeeting.Core.Orchestration
                 {
                     MeetingId = meetingId,
                     State = context.State,
-                    EndReason = "Meeting completed successfully",
+                    EndReason = endReason,
                     Duration = duration,
                     MessageCount = context.Messages.Count,
                     TranscriptPath = $"meetings/{meetingId}/transcript.md",
@@ -266,6 +333,19 @@ namespace AIMeeting.Core.Orchestration
             }
             finally
             {
+                if (orchestrator != null)
+                {
+                    await orchestrator.StopAsync();
+                    
+                    // Output orchestrator metrics if available
+                    if (orchestrator is AIOrchestrator aiOrchestrator)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(aiOrchestrator.Metrics.GetSummary());
+                        Console.WriteLine();
+                    }
+                }
+
                 lock (_meetingLock)
                 {
                     _meetings.Remove(meetingId);

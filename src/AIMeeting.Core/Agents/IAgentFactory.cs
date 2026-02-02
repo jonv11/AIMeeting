@@ -2,6 +2,7 @@ namespace AIMeeting.Core.Agents
 {
     using AIMeeting.Core.Configuration;
     using AIMeeting.Core.Models;
+    using AIMeeting.Core.Orchestration;
 
     /// <summary>
     /// Factory for creating agent instances from configuration.
@@ -25,6 +26,17 @@ namespace AIMeeting.Core.Agents
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Dictionary of AgentId to IAgent</returns>
         Task<Dictionary<string, IAgent>> CreateAgentsAsync(
+            IEnumerable<string> configPaths,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Detects and creates an orchestrator from the list of configuration paths.
+        /// Returns null if no orchestrator configuration is found.
+        /// </summary>
+        /// <param name="configPaths">Paths to agent configuration files</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Orchestrator instance or null</returns>
+        Task<IOrchestratorDecisionMaker?> DetectOrchestratorAsync(
             IEnumerable<string> configPaths,
             CancellationToken cancellationToken = default);
 

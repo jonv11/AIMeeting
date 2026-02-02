@@ -104,6 +104,14 @@ namespace AIMeeting.Core.Tests.Orchestration
             {
                 return new TestAgent("moderator");
             }
+
+            public Task<AIMeeting.Core.Orchestration.IOrchestratorDecisionMaker?> DetectOrchestratorAsync(
+                IEnumerable<string> configPaths,
+                CancellationToken cancellationToken = default)
+            {
+                // No orchestrator in tests
+                return Task.FromResult<AIMeeting.Core.Orchestration.IOrchestratorDecisionMaker?>(null);
+            }
         }
 
         private sealed class TestAgent : IAgent

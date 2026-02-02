@@ -3,6 +3,7 @@ namespace AIMeeting.Core.Agents
     using AIMeeting.Core.Configuration;
     using AIMeeting.Core.Models;
     using AIMeeting.Core.Prompts;
+    using AIMeeting.Core.Orchestration;
 
     /// <summary>
     /// Default implementation of IAgentFactory.
@@ -70,6 +71,12 @@ namespace AIMeeting.Core.Agents
             var agentId = GenerateAgentId(config);
 
             // Create the appropriate agent type
+            if (config.Role.Equals("Orchestrator", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Orchestrator configurations are handled separately. Use DetectOrchestratorAsync.");
+            }
+
             // Check if this is a moderator agent by role name
             if (config.Role.Equals("Moderator", StringComparison.OrdinalIgnoreCase))
             {
@@ -91,11 +98,70 @@ namespace AIMeeting.Core.Agents
 
             foreach (var configPath in paths)
             {
+                var parseResult = await _configParser.ParseAsync(configPath, cancellationToken);
+                if (parseResult.IsSuccess)
+                {
+                    var role = parseResult.Configuration.Role;
+                    if (role.Equals("Orchestrator", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                }
+
                 var agent = await CreateAgentAsync(configPath, cancellationToken);
                 agents[agent.AgentId] = agent;
             }
 
             return agents;
+        }
+
+        /// <summary>
+        /// Detects and creates an orchestrator from the list of configuration paths.
+        /// Returns null if no orchestrator configuration is found.
+        /// </summary>
+        /// <param name="configPaths">List of configuration file paths</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Orchestrator instance or null</returns>
+        public async Task<IOrchestratorDecisionMaker?> DetectOrchestratorAsync(
+            IEnumerable<string> configPaths,
+            CancellationToken cancellationToken = default)
+        {
+            var paths = configPaths?.ToList() ?? new List<string>();
+            
+            foreach (var configPath in paths)
+            {
+                // Parse the configuration
+                var parseResult = await _configParser.ParseAsync(configPath, cancellationToken);
+                
+                if (!parseResult.IsSuccess)
+                {
+                    continue; // Skip invalid configs
+                }
+                
+                var config = parseResult.Configuration;
+                
+                // Check if this is an orchestrator by role
+                if (config.Role.Equals("Orchestrator", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Validate the configuration
+                    var validationResult = _configValidator.Validate(config, parseResult.Errors);
+                    if (!validationResult.IsValid)
+                    {
+                        var errors = string.Join("; ", validationResult.Errors);
+                        throw new InvalidOperationException(
+                            $"Orchestrator configuration validation failed: {errors}");
+                    }
+                    
+                    // Generate orchestrator ID
+                    var orchestratorId = GenerateAgentId(config);
+                    
+                    // Create and return AIOrchestrator
+                    return new AIOrchestrator(orchestratorId, _promptBuilder, _copilotClient);
+                }
+            }
+
+            // No orchestrator found
+            return null;
         }
 
         /// <summary>

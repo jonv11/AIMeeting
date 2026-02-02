@@ -9,8 +9,8 @@
 Ensure you have:
 - ✅ **.NET 8 SDK** or later ([Download](https://dotnet.microsoft.com/download))
   - Verify: `dotnet --version`
-- ✅ **GitHub Copilot CLI** ([Install](https://github.com/github/copilot-cli))
-  - Verify: `gh copilot --version`
+- ✅ **GitHub Copilot SDK for .NET** (integrated via NuGet in v0.1.1)
+  - No separate installation required
 - ✅ **Active GitHub Copilot subscription** (required for v0.1)
 - ✅ **Git** ([Download](https://git-scm.com/))
 
@@ -103,11 +103,11 @@ AIMeeting/
 
 ## **Troubleshooting**
 
-### "Copilot CLI not found"
+### "Copilot SDK connection error"
 ```bash
-# Install GitHub Copilot CLI
-gh auth login  # Authenticate first
-# Follow: https://github.com/github/copilot-cli
+# The Copilot SDK is integrated via NuGet (no separate installation)
+# Ensure you have an active GitHub Copilot subscription
+# Check network connectivity and GitHub service status
 ```
 
 ### "Agent config validation failed"

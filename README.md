@@ -40,6 +40,12 @@ A CLI-based multi-agent meeting system where AI agents with different roles enga
 - **FIFO Turn-Taking**: Simple sequential turn coordination
 - **Hard Limits Enforcement**: Time and message count limits
 
+**[v0.1.2]** — Orchestrator Foundation (Planned):
+- **Dynamic Turn Control**: Orchestrator decides who speaks next
+- **Phase Transitions**: Orchestrator can advance meeting phases
+- **Early Termination**: Orchestrator can end meetings when goals are met
+- **JSON Decision Format**: Structured response schema with validation
+
 **[v0.2]** — Enhanced Artifacts (Planned):
 - **Meeting Summaries**: Automatic generation of meeting summaries
 - **Action Item Extraction**: Extract and track action items from discussions

@@ -7,7 +7,7 @@ Find answers to common questions about AIMeeting. Can't find your answer? Check 
 ## **Installation & Setup**
 
 ### **Q: Do I need a paid Copilot subscription?**
-**A:** Yes, GitHub Copilot CLI requires an active GitHub Copilot subscription. Free tier does not include access to Copilot CLI.
+**A:** Yes, GitHub Copilot SDK for .NET requires an active GitHub Copilot subscription. Free tier does not include access to the Copilot API.
 
 ### **Q: What .NET version do I need?**
 **A:** .NET 8.0 or later. Verify with: `dotnet --version`
@@ -101,7 +101,7 @@ See [README](../README.md) for roadmap and planned features.
 **A:** Not in v0.1 (CLI only). Web UI is not currently on the roadmap but could be added based on community feedback.
 
 ### **Q: Can I use other AI models (not Copilot)?**
-**A:** v0.1 supports GitHub Copilot CLI only. Multi-provider support (OpenAI, Azure, local models) is planned for v0.4. See [Product Roadmap](../guides/roadmap.md).
+**A:** v0.1 supports GitHub Copilot SDK for .NET only. Multi-provider support (OpenAI, Azure, local models) is planned for v0.4. See [Product Roadmap](../guides/roadmap.md).
 
 ### **Q: Can agents create files or artifacts?**
 **A:** Basic artifact support is in v0.1 (transcript.md, meeting.json, errors.log). Enhanced artifacts (summaries, action items, decisions) are planned for v0.2.
@@ -150,12 +150,12 @@ AIMEETING_AGENT_MODE=stub dotnet test /p:CollectCoverage=true
 
 ## **Troubleshooting**
 
-### **Q: "Copilot CLI not found" error**
+### **Q: "Copilot SDK connection error"**
 **A:** 
-1. Install GitHub Copilot CLI: https://github.com/github/copilot-cli
-2. Verify installation: `gh copilot --version`
-3. Ensure `gh` is in your PATH
-4. Restart terminal after installation
+1. Verify you have an active GitHub Copilot subscription
+2. Check network connectivity and GitHub service status
+3. Ensure Copilot SDK is integrated (check `src/AIMeeting.Copilot/AIMeeting.Copilot.csproj`)
+4. Review error logs in `logs/` directory
 
 ### **Q: "Agent config validation failed"**
 **A:**
@@ -188,7 +188,7 @@ AIMEETING_AGENT_MODE=stub dotnet test /p:CollectCoverage=true
 ### **Q: Meeting generated empty transcript**
 **A:**
 1. Check that agents generated responses (see console output)
-2. Verify Copilot CLI is connected: `gh copilot --version`
+2. Verify Copilot SDK is working (check logs for connection errors)
 3. Check error log: `meetings/YYYYMMDD_HHMMSS_topic/errors.log`
 4. Increase `--max-duration` if agents are timing out
 

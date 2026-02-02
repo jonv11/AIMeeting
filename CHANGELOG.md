@@ -10,6 +10,40 @@ All notable changes to this project will be documented in this file.
 - **Scope**: Include user-visible changes, dependency/CI changes, and documentation updates that affect usage.
 - **Immutability**: Do not edit prior release entries except to correct factual errors.
 
+## [v0.1.2] - Unreleased
+
+### Added
+- Orchestrator abstraction (`IOrchestratorDecisionMaker`) and orchestrator-driven turn manager.
+- Orchestrator response model, validation, and event types.
+- AI orchestrator stub implementation for testing and CI.
+- Orchestrator configuration template and response format reference.
+- **Phase 4 - Copilot SDK Integration:**
+  - Orchestrator prompt building with meeting context, available agents, message history, and decision guidance
+  - JSON decision parsing with markdown code block extraction
+  - Retry logic with exponential backoff (3 attempts, 500ms → 1000ms → 2000ms delays)
+  - Error handling with automatic fallback to stub mode
+  - 16 new unit tests for prompt building and decision parsing
+  - Support for all decision types: continue meeting, change phase, end meeting
+
+### Changed
+- Meeting orchestration now supports optional orchestrator-driven turn-taking.
+- Agent factory detects orchestrator configurations and excludes them from standard agent creation.
+- Documentation updated with orchestrator guide, retry logic details, and integration status.
+- Orchestrator guide updated with Phase 4 features and troubleshooting guidance.
+
+### Fixed
+- **AIOrchestrator**: Corrected to use `ICopilotClient.GenerateAsync()` method (GitHub Copilot SDK for .NET) instead of incorrect `GetResponseAsync()` method.
+- Documentation updated to consistently refer to "GitHub Copilot SDK for .NET" instead of "GitHub Copilot CLI" for all agent and orchestrator LLM interactions.
+
+### Implementation Status
+- ✅ Phase 1: Orchestrator foundation (interfaces, models, events)
+- ✅ Phase 2: Stub implementation for testing
+- ✅ Phase 3: Turn manager integration
+- ✅ Phase 4: Prompt building and decision parsing
+- ✅ Phase 5: Real Copilot SDK integration (verified - uses SDK correctly)
+- ⏳ Phase 6: Prompt tuning based on meeting outcomes
+- ⏳ Phase 7: State tracking (hypotheses, decisions, open questions)
+
 ## [v0.1.1] - 2026-02-01
 
 ### Changed
