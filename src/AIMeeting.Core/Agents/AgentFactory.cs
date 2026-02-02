@@ -71,6 +71,12 @@ namespace AIMeeting.Core.Agents
             var agentId = GenerateAgentId(config);
 
             // Create the appropriate agent type
+            if (config.Role.Equals("Orchestrator", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Orchestrator configurations are handled separately. Use DetectOrchestratorAsync.");
+            }
+
             // Check if this is a moderator agent by role name
             if (config.Role.Equals("Moderator", StringComparison.OrdinalIgnoreCase))
             {
@@ -92,6 +98,16 @@ namespace AIMeeting.Core.Agents
 
             foreach (var configPath in paths)
             {
+                var parseResult = await _configParser.ParseAsync(configPath, cancellationToken);
+                if (parseResult.IsSuccess)
+                {
+                    var role = parseResult.Configuration.Role;
+                    if (role.Equals("Orchestrator", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                }
+
                 var agent = await CreateAgentAsync(configPath, cancellationToken);
                 agents[agent.AgentId] = agent;
             }
