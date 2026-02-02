@@ -25,6 +25,11 @@ namespace AIMeeting.Core.Orchestration
         private IDisposable? _turnCompletedSubscription;
         private int _currentAgentIndex = 0;
         
+        // Retry configuration
+        private const int MaxRetries = 3;
+        private const int InitialRetryDelayMs = 500;
+        private const int MaxRetryDelayMs = 5000;
+        
         /// <summary>
         /// Unique identifier for this orchestrator.
         /// </summary>
@@ -114,30 +119,34 @@ namespace AIMeeting.Core.Orchestration
             // Build orchestrator prompt with meeting context
             var prompt = BuildOrchestratorPrompt(request);
             
-            // Call Copilot CLI to get decision
-            string response;
-            try
+            // Retry logic with exponential backoff
+            for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
-                response = await _copilotClient.GetResponseAsync(prompt);
-            }
-            catch (Exception ex)
-            {
-                // Fall back to stub on Copilot failure
-                Console.WriteLine($"Copilot call failed, using stub: {ex.Message}");
-                return MakeStubDecision(request);
+                try
+                {
+                    // Call Copilot CLI to get decision
+                    var response = await _copilotClient!.GetResponseAsync(prompt);
+                    
+                    // Parse and validate the decision
+                    return ParseDecision(response, request.MeetingId);
+                }
+                catch (Exception ex) when (attempt < MaxRetries)
+                {
+                    // Calculate exponential backoff delay
+                    var delayMs = Math.Min(InitialRetryDelayMs * (int)Math.Pow(2, attempt - 1), MaxRetryDelayMs);
+                    Console.WriteLine($"Orchestrator attempt {attempt} failed: {ex.Message}. Retrying in {delayMs}ms...");
+                    await Task.Delay(delayMs);
+                }
+                catch (Exception ex)
+                {
+                    // Final attempt failed, fall back to stub
+                    Console.WriteLine($"Orchestrator failed after {MaxRetries} attempts: {ex.Message}. Falling back to stub mode.");
+                    return MakeStubDecision(request);
+                }
             }
             
-            // Parse and validate the decision
-            try
-            {
-                return ParseDecision(response, request.MeetingId);
-            }
-            catch (Exception ex)
-            {
-                // Fall back to stub on parse failure
-                Console.WriteLine($"Decision parsing failed, using stub: {ex.Message}");
-                return MakeStubDecision(request);
-            }
+            // Should never reach here, but fallback to stub for safety
+            return MakeStubDecision(request);
         }
         
         /// <summary>
