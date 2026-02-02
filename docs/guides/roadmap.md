@@ -1,8 +1,8 @@
 # AIMeeting Project Roadmap
 
 **Project**: AIMeeting Multi-Agent Meeting System  
-**Current Phase**: v0.1.1 Released  
-**Last Updated**: February 1, 2026
+**Current Phase**: v0.1.2 In Progress  
+**Last Updated**: February 2, 2026
 
 ---
 
@@ -18,6 +18,7 @@ Enable organizations to conduct structured AI-powered discussions for complex de
 |---------|-------|--------|--------|
 | **v0.1.0** | MVP — Core Foundation | Week 9 | ✅ Released (Jan 31, 2026) |
 | **v0.1.1** | Patch — Copilot SDK/CI | Week 9 | ✅ Released (Feb 1, 2026) |
+| **v0.1.2** | Orchestrator Foundation | Week 10-12 | 🔄 In Progress |
 | **v0.2.0** | Meeting Artifacts | Week 14 | ⏳ Planned |
 | **v0.3.0** | Robustness & Scale | Week 20 | ⏳ Planned |
 | **v0.4.0** | Advanced Features | Week 28 | ⏳ Planned |
@@ -111,6 +112,44 @@ Enable organizations to conduct structured AI-powered discussions for complex de
 - AGENT_CONFIGURATION_GUIDE.md
 - EXAMPLES.md with 3 scenarios
 - 4 sample agent configs (PM, developer, security, moderator)
+
+---
+
+## v0.1.2 — Orchestrator Foundation [Week 10-12]
+
+**Goal**: Introduce orchestrator-driven meeting flow and decision control.
+
+**Status**: 🔄 In Progress (February 2026)
+
+### Features (MUST-HAVE)
+
+✅ **Orchestrator Abstraction**
+- `IOrchestratorDecisionMaker` interface
+- Event-driven orchestration via `IEventBus`
+
+✅ **Orchestrator Response Format**
+- Strict JSON response schema
+- Response validation (`OrchestratorResponseValidator`)
+
+✅ **Orchestrator-Driven Turn Manager**
+- `OrchestratorDrivenTurnManager` delegates decisions
+- Timeout handling with FIFO fallback
+
+✅ **Orchestrator Agent (Stub Mode)**
+- Stub decision logic for tests and CI
+- Uses round-robin agent selection
+
+🔄 **MeetingOrchestrator Integration**
+- Detect orchestrator configuration by role
+- Initialize orchestrator and switch turn manager
+- Handle `change_phase` and `end_meeting` decisions
+
+### Documentation
+
+- Orchestrator response format reference
+- Orchestrator guide
+- CLI guide updates
+- Agent configuration guide updates
 
 ---
 

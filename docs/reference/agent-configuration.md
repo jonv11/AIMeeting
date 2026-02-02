@@ -168,6 +168,20 @@ The repository includes sample configurations aligned with v0.1 documentation:
 - `config/agents/security-expert.txt`
 - `config/agents/moderator.txt`
 
+## Orchestrator Configuration
+
+Orchestrator agents control meeting flow and **must** return valid JSON decisions. Use the orchestrator config template:
+
+- `config/agents/orchestrator.txt`
+
+Key requirements for orchestrators:
+- `ROLE` must be set to `Orchestrator`
+- `INSTRUCTIONS` must enforce **JSON-only** responses
+- Responses must match the orchestrator response format
+
+See the response format reference:
+- [docs/reference/orchestrator-response-format.md](orchestrator-response-format.md)
+
 ## Troubleshooting Configuration Issues
 
 ### Agent Responds Off-Topic

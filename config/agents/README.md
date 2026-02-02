@@ -132,6 +132,13 @@ These configurations align with the v0.1 CLI examples and documentation.
     - Expertise: Note-taking, documentation, information organization
     - Special: Creates meeting artifacts (transcript, decisions, action items)
 
+16. **orchestrator.txt**
+    - Role: Orchestrator
+    - Focus: Meeting flow control, turn-taking decisions, phase transitions
+    - Key Strengths: Process rigor, conflict resolution, convergence driving
+    - Expertise: Process management, decision theory, meeting facilitation
+    - Special: Controls turn sequencing and can end meetings early
+
 ## Agent Naming Conventions
 
 All agent names follow a consistent pattern:
@@ -164,6 +171,20 @@ dotnet run --project src/AIMeeting.CLI -- \
              "config/agents/solutions-architect.txt" \
              "config/agents/principal-engineer.txt" \
              "config/agents/meeting-facilitator.txt" \
+    --max-duration 30 \
+    --max-messages 50
+```
+
+To enable orchestrator-driven turn management, include the orchestrator config in the agent list:
+
+```bash
+dotnet run --project src/AIMeeting.CLI -- \
+    start-meeting \
+    --topic "Your meeting topic" \
+    --agents "config/agents/orchestrator.txt" \
+             "config/agents/product-strategist.txt" \
+             "config/agents/solutions-architect.txt" \
+             "config/agents/principal-engineer.txt" \
     --max-duration 30 \
     --max-messages 50
 ```
@@ -216,4 +237,4 @@ dotnet run --project src/AIMeeting.CLI -- \
 
 **Created**: January 30, 2026  
 **Based on**: ROLES.md and AI_PROMPT_ENGINEERING_GUIDE.md  
-**Total Agents**: 15 unique role configurations
+**Total Agents**: 16 unique role configurations

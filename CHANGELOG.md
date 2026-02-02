@@ -10,6 +10,19 @@ All notable changes to this project will be documented in this file.
 - **Scope**: Include user-visible changes, dependency/CI changes, and documentation updates that affect usage.
 - **Immutability**: Do not edit prior release entries except to correct factual errors.
 
+## [v0.1.2] - Unreleased
+
+### Added
+- Orchestrator abstraction (`IOrchestratorDecisionMaker`) and orchestrator-driven turn manager.
+- Orchestrator response model, validation, and event types.
+- AI orchestrator stub implementation for testing and CI.
+- Orchestrator configuration template and response format reference.
+
+### Changed
+- Meeting orchestration now supports optional orchestrator-driven turn-taking.
+- Agent factory detects orchestrator configurations and excludes them from standard agent creation.
+- Documentation updated with orchestrator guide and CLI usage.
+
 ## [v0.1.1] - 2026-02-01
 
 ### Changed

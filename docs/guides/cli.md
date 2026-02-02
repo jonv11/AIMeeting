@@ -321,6 +321,28 @@ dotnet run --project src/AIMeeting.CLI -- start-meeting \
 - Artifact creation (meeting.json, transcript.md)
 - Graceful shutdown with Ctrl+C
 
+### Orchestrator-Driven Meetings
+
+To enable orchestrator-driven turn-taking, include the orchestrator configuration in the agent list:
+
+```bash
+dotnet run --project src/AIMeeting.CLI -- start-meeting \
+  "Discuss microservices architecture" \
+  --agents config/agents/orchestrator.txt \
+           config/agents/project-manager.txt \
+           config/agents/senior-developer.txt \
+           config/agents/security-expert.txt \
+  --max-duration 30 \
+  --max-messages 50
+```
+
+Behavior:
+- Orchestrator decides who speaks next
+- Orchestrator can change phases and end the meeting early
+- If the orchestrator does not respond within 30 seconds, the system falls back to FIFO for that turn
+
+See the orchestrator guide: [docs/guides/orchestrator-guide.md](orchestrator-guide.md)
+
 ---
 
 ## Useful Commands for Development

@@ -53,6 +53,45 @@ Console.WriteLine($"Meeting ended: {result.State}");
 Console.WriteLine($"Transcript: {result.TranscriptPath}");
 ```
 
+### IOrchestratorDecisionMaker
+
+Interface for orchestrator decision-making. Implementations can be AI-driven, human-driven, or rule-based.
+
+```csharp
+public interface IOrchestratorDecisionMaker
+{
+    /// <summary>
+    /// Unique identifier for this orchestrator.
+    /// </summary>
+    string OrchestratorId { get; }
+
+    /// <summary>
+    /// Initializes the orchestrator for a meeting.
+    /// </summary>
+    Task InitializeAsync(
+        MeetingContext context,
+        IEventBus eventBus,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Starts the orchestrator (begins listening for events).
+    /// </summary>
+    Task StartAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Stops the orchestrator gracefully.
+    /// </summary>
+    Task StopAsync();
+}
+```
+
+**Usage**:
+```csharp
+var orchestrator = new AIOrchestrator("orchestrator-1", promptBuilder, copilotClient);
+await orchestrator.InitializeAsync(context, eventBus, CancellationToken.None);
+await orchestrator.StartAsync(CancellationToken.None);
+```
+
 ### IEventBus
 
 Pub/sub event notification system for meeting events.
