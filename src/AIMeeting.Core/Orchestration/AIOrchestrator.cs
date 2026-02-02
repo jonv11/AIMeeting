@@ -6,6 +6,8 @@ namespace AIMeeting.Core.Orchestration
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -109,9 +111,33 @@ namespace AIMeeting.Core.Orchestration
                 return MakeStubDecision(request);
             }
             
-            // TODO: Phase 4 - Real Copilot integration
-            // For now, fall back to stub
-            return MakeStubDecision(request);
+            // Build orchestrator prompt with meeting context
+            var prompt = BuildOrchestratorPrompt(request);
+            
+            // Call Copilot CLI to get decision
+            string response;
+            try
+            {
+                response = await _copilotClient.GetResponseAsync(prompt);
+            }
+            catch (Exception ex)
+            {
+                // Fall back to stub on Copilot failure
+                Console.WriteLine($"Copilot call failed, using stub: {ex.Message}");
+                return MakeStubDecision(request);
+            }
+            
+            // Parse and validate the decision
+            try
+            {
+                return ParseDecision(response, request.MeetingId);
+            }
+            catch (Exception ex)
+            {
+                // Fall back to stub on parse failure
+                Console.WriteLine($"Decision parsing failed, using stub: {ex.Message}");
+                return MakeStubDecision(request);
+            }
         }
         
         /// <summary>
@@ -160,6 +186,244 @@ namespace AIMeeting.Core.Orchestration
         {
             // TODO: Phase 7 - Track state (hypotheses, decisions, etc.)
             return Task.CompletedTask;
+        }
+        
+        /// <summary>
+        /// Builds a context-aware prompt for the orchestrator.
+        /// </summary>
+        private string BuildOrchestratorPrompt(OrchestratorTurnRequestEvent request)
+        {
+            if (_currentContext == null)
+            {
+                throw new InvalidOperationException("Context not initialized");
+            }
+            
+            var prompt = new StringBuilder();
+            
+            // Meeting metadata
+            prompt.AppendLine("=== MEETING CONTEXT ===");
+            prompt.AppendLine($"Topic: {_currentContext.Topic}");
+            prompt.AppendLine($"Current Phase: {request.CurrentPhase}");
+            prompt.AppendLine($"Turn Number: {request.CurrentTurnNumber}");
+            prompt.AppendLine($"Messages So Far: {_currentContext.Messages.Count}");
+            prompt.AppendLine();
+            
+            // Available agents (exclude orchestrator)
+            prompt.AppendLine("=== AVAILABLE AGENTS ===");
+            var availableAgents = _currentContext.Agents.Keys
+                .Where(id => id != OrchestratorId)
+                .ToList();
+            
+            if (availableAgents.Count == 0)
+            {
+                prompt.AppendLine("(No agents available)");
+            }
+            else
+            {
+                foreach (var agentId in availableAgents)
+                {
+                    prompt.AppendLine($"- {agentId}");
+                }
+            }
+            prompt.AppendLine();
+            
+            // Recent message history (last 5 messages)
+            prompt.AppendLine("=== RECENT MESSAGES ===");
+            var recentMessages = _currentContext.Messages
+                .TakeLast(5)
+                .ToList();
+            
+            if (recentMessages.Count == 0)
+            {
+                prompt.AppendLine("(No messages yet)");
+            }
+            else
+            {
+                foreach (var msg in recentMessages)
+                {
+                    prompt.AppendLine($"[{msg.AgentId}]: {msg.Content}");
+                }
+            }
+            prompt.AppendLine();
+            
+            // Response format requirements
+            prompt.AppendLine("=== RESPONSE FORMAT ===");
+            prompt.AppendLine("You MUST respond with ONLY valid JSON. No additional text.");
+            prompt.AppendLine("Format:");
+            prompt.AppendLine("{");
+            prompt.AppendLine("  \"decision\": \"continue\" | \"change_phase\" | \"end_meeting\",");
+            prompt.AppendLine("  \"next_agent_id\": \"agent-id\" (required if decision=continue),");
+            prompt.AppendLine("  \"new_phase\": \"PhaseName\" (required if decision=change_phase),");
+            prompt.AppendLine("  \"end_reason\": \"reason\" (required if decision=end_meeting),");
+            prompt.AppendLine("  \"rationale\": \"your detailed reasoning\" (always required)");
+            prompt.AppendLine("}");
+            prompt.AppendLine();
+            prompt.AppendLine("Valid phases: ProblemClarification, OptionGeneration, Evaluation, Decision, ExecutionPlanning, Conclusion");
+            prompt.AppendLine();
+            
+            // Decision guidance
+            prompt.AppendLine("=== DECISION GUIDANCE ===");
+            prompt.AppendLine("Choose based on:");
+            prompt.AppendLine("- Who has relevant expertise for current phase");
+            prompt.AppendLine("- Who hasn't spoken recently");
+            prompt.AppendLine("- What perspective is missing");
+            prompt.AppendLine("- Whether discussion is converging or cycling");
+            prompt.AppendLine();
+            prompt.AppendLine("End meeting when:");
+            prompt.AppendLine("- Clear decision reached with action items");
+            prompt.AppendLine("- Consensus achieved");
+            prompt.AppendLine("- Deadlock with no path forward");
+            prompt.AppendLine();
+            prompt.AppendLine("Change phase when:");
+            prompt.AppendLine("- Current phase objectives met");
+            prompt.AppendLine("- Need to shift from exploration to convergence");
+            
+            return prompt.ToString();
+        }
+        
+        /// <summary>
+        /// Parses orchestrator JSON response into a decision event.
+        /// </summary>
+        private OrchestratorDecisionEvent ParseDecision(string jsonResponse, string meetingId)
+        {
+            // Extract JSON from response (handle markdown code blocks if present)
+            var json = ExtractJson(jsonResponse);
+            
+            // Parse JSON
+            OrchestratorResponse? response;
+            try
+            {
+                response = JsonSerializer.Deserialize<OrchestratorResponse>(json);
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException($"Failed to parse orchestrator JSON: {ex.Message}", ex);
+            }
+            
+            if (response == null)
+            {
+                throw new InvalidOperationException("Orchestrator response deserialized to null");
+            }
+            
+            // Validate and convert to decision event
+            return response.Decision.ToLowerInvariant() switch
+            {
+                "continue" => ValidateContinueDecision(response, meetingId),
+                "change_phase" => ValidateChangePhaseDecision(response, meetingId),
+                "end_meeting" => ValidateEndMeetingDecision(response, meetingId),
+                _ => throw new InvalidOperationException($"Invalid decision type: {response.Decision}")
+            };
+        }
+        
+        /// <summary>
+        /// Extracts JSON from response, handling markdown code blocks.
+        /// </summary>
+        private string ExtractJson(string response)
+        {
+            var trimmed = response.Trim();
+            
+            // Check for markdown code block
+            if (trimmed.StartsWith("```json"))
+            {
+                var startIndex = trimmed.IndexOf('\n') + 1;
+                var endIndex = trimmed.LastIndexOf("```");
+                if (endIndex > startIndex)
+                {
+                    return trimmed.Substring(startIndex, endIndex - startIndex).Trim();
+                }
+            }
+            else if (trimmed.StartsWith("```"))
+            {
+                var startIndex = trimmed.IndexOf('\n') + 1;
+                var endIndex = trimmed.LastIndexOf("```");
+                if (endIndex > startIndex)
+                {
+                    return trimmed.Substring(startIndex, endIndex - startIndex).Trim();
+                }
+            }
+            
+            return trimmed;
+        }
+        
+        /// <summary>
+        /// Validates continue decision and creates event.
+        /// </summary>
+        private OrchestratorDecisionEvent ValidateContinueDecision(
+            OrchestratorResponse response, string meetingId)
+        {
+            if (string.IsNullOrWhiteSpace(response.NextAgentId))
+            {
+                throw new InvalidOperationException("Continue decision requires next_agent_id");
+            }
+            
+            if (string.IsNullOrWhiteSpace(response.Rationale))
+            {
+                throw new InvalidOperationException("Decision requires rationale");
+            }
+            
+            return new OrchestratorDecisionEvent
+            {
+                MeetingId = meetingId,
+                Type = DecisionType.ContinueMeeting,
+                NextAgentId = response.NextAgentId,
+                Rationale = response.Rationale
+            };
+        }
+        
+        /// <summary>
+        /// Validates change phase decision and creates event.
+        /// </summary>
+        private OrchestratorDecisionEvent ValidateChangePhaseDecision(
+            OrchestratorResponse response, string meetingId)
+        {
+            if (string.IsNullOrWhiteSpace(response.NewPhase))
+            {
+                throw new InvalidOperationException("Change phase decision requires new_phase");
+            }
+            
+            if (string.IsNullOrWhiteSpace(response.Rationale))
+            {
+                throw new InvalidOperationException("Decision requires rationale");
+            }
+            
+            // Parse phase enum
+            if (!Enum.TryParse<MeetingPhase>(response.NewPhase, ignoreCase: true, out var newPhase))
+            {
+                throw new InvalidOperationException($"Invalid phase name: {response.NewPhase}");
+            }
+            
+            return new OrchestratorDecisionEvent
+            {
+                MeetingId = meetingId,
+                Type = DecisionType.ChangePhase,
+                NewPhase = newPhase,
+                Rationale = response.Rationale
+            };
+        }
+        
+        /// <summary>
+        /// Validates end meeting decision and creates event.
+        /// </summary>
+        private OrchestratorDecisionEvent ValidateEndMeetingDecision(
+            OrchestratorResponse response, string meetingId)
+        {
+            if (string.IsNullOrWhiteSpace(response.EndReason))
+            {
+                throw new InvalidOperationException("End meeting decision requires end_reason");
+            }
+            
+            if (string.IsNullOrWhiteSpace(response.Rationale))
+            {
+                throw new InvalidOperationException("Decision requires rationale");
+            }
+            
+            return new OrchestratorDecisionEvent
+            {
+                MeetingId = meetingId,
+                Type = DecisionType.EndMeeting,
+                EndReason = response.EndReason,
+                Rationale = response.Rationale
+            };
         }
     }
 }
