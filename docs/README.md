@@ -63,6 +63,8 @@ Quality and testing:
 - **[Usage Examples](reference/examples.md)** – Code samples and walkthroughs
 
 ### How-To Guides
+- **[Orchestrator Guide](guides/orchestrator-guide.md)** – Using orchestrator-driven meetings (v0.1.2)
+- **[Phase 5 Testing Guide](guides/phase-5-testing-guide.md)** – Manual testing with real Copilot CLI (v0.1.2)
 - **[CLI Guide](guides/cli.md)** – Command-line usage
 - **[Product Roadmap](guides/roadmap.md)** – Feature timeline
 - **[Getting Started](learning/getting-started.md)** – First-time setup
