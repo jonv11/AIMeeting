@@ -104,7 +104,7 @@ To test with real Copilot CLI once integrated, ensure `AIMEETING_AGENT_MODE` is 
 - Orchestrator should not select itself as next agent
 
 **Copilot integration errors**
-- Verify GitHub Copilot CLI is installed and authenticated
+- Verify GitHub Copilot SDK for .NET is installed (integrated in v0.1.1)
 - Check network connectivity
 - Review retry attempt logs in console output
 

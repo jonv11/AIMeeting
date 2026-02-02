@@ -12,13 +12,13 @@ namespace AIMeeting.Core.Orchestration
     using System.Threading.Tasks;
 
     /// <summary>
-    /// AI-driven orchestrator that uses Copilot CLI for decision-making.
+    /// AI-driven orchestrator that uses GitHub Copilot SDK for decision-making.
     /// Implements IOrchestratorDecisionMaker interface.
     /// </summary>
     public class AIOrchestrator : IOrchestratorDecisionMaker
     {
         private readonly IPromptBuilder _promptBuilder;
-        private dynamic? _copilotClient; // Use dynamic to avoid hard dependency
+        private readonly object? _copilotClient; // ICopilotClient but typed as object to avoid hard dependency
         private IEventBus? _eventBus;
         private MeetingContext? _currentContext;
         private IDisposable? _turnRequestSubscription;
@@ -48,11 +48,11 @@ namespace AIMeeting.Core.Orchestration
         /// </summary>
         /// <param name="orchestratorId">Unique identifier</param>
         /// <param name="promptBuilder">Prompt builder for creating orchestrator prompts</param>
-        /// <param name="copilotClient">Copilot client for LLM decisions (optional, uses stub if null)</param>
+        /// <param name="copilotClient">Copilot SDK client for LLM decisions (ICopilotClient, optional, uses stub if null)</param>
         public AIOrchestrator(
             string orchestratorId,
             IPromptBuilder promptBuilder,
-            dynamic? copilotClient = null)
+            object? copilotClient = null)
         {
             OrchestratorId = orchestratorId ?? throw new ArgumentNullException(nameof(orchestratorId));
             _promptBuilder = promptBuilder ?? throw new ArgumentNullException(nameof(promptBuilder));
@@ -114,7 +114,8 @@ namespace AIMeeting.Core.Orchestration
         /// Makes a decision about the next turn.
         /// </summary>
         private async Task<OrchestratorDecisionEvent> MakeDecisionAsync(
-            OrchestratorTurnRequestEvent request)
+            OrchestratorTurnRequestEvent request,
+            CancellationToken cancellationToken = default)
         {
             var startTime = DateTime.UtcNow;
             _metrics.TotalDecisions++;
@@ -138,8 +139,10 @@ namespace AIMeeting.Core.Orchestration
             {
                 try
                 {
-                    // Call Copilot CLI to get decision
-                    var response = await _copilotClient!.GetResponseAsync(prompt);
+                    // Call Copilot SDK to get decision
+                    // Cast to dynamic for GenerateAsync call (ICopilotClient interface)
+                    dynamic client = _copilotClient!;
+                    var response = await client.GenerateAsync(prompt, null, cancellationToken);
                     
                     // Parse and validate the decision
                     var decision = ParseDecision(response, request.MeetingId);

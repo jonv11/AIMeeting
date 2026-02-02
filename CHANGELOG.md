@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - Orchestrator response model, validation, and event types.
 - AI orchestrator stub implementation for testing and CI.
 - Orchestrator configuration template and response format reference.
-- **Phase 4 - Copilot Integration:**
+- **Phase 4 - Copilot SDK Integration:**
   - Orchestrator prompt building with meeting context, available agents, message history, and decision guidance
   - JSON decision parsing with markdown code block extraction
   - Retry logic with exponential backoff (3 attempts, 500ms → 1000ms → 2000ms delays)
@@ -31,12 +31,16 @@ All notable changes to this project will be documented in this file.
 - Documentation updated with orchestrator guide, retry logic details, and integration status.
 - Orchestrator guide updated with Phase 4 features and troubleshooting guidance.
 
+### Fixed
+- **AIOrchestrator**: Corrected to use `ICopilotClient.GenerateAsync()` method (GitHub Copilot SDK for .NET) instead of incorrect `GetResponseAsync()` method.
+- Documentation updated to consistently refer to "GitHub Copilot SDK for .NET" instead of "GitHub Copilot CLI" for all agent and orchestrator LLM interactions.
+
 ### Implementation Status
 - ✅ Phase 1: Orchestrator foundation (interfaces, models, events)
 - ✅ Phase 2: Stub implementation for testing
 - ✅ Phase 3: Turn manager integration
 - ✅ Phase 4: Prompt building and decision parsing
-- ⏳ Phase 5: Real Copilot CLI testing (pending)
+- ✅ Phase 5: Real Copilot SDK integration (verified - uses SDK correctly)
 - ⏳ Phase 6: Prompt tuning based on meeting outcomes
 - ⏳ Phase 7: State tracking (hypotheses, decisions, open questions)
 

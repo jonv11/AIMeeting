@@ -1,15 +1,13 @@
-# Phase 5 Testing Guide: Real Copilot CLI Integration
+# Phase 5 Testing Guide: Real Copilot SDK Integration
 
-This guide provides a structured approach to testing the orchestrator with real GitHub Copilot CLI integration.
+This guide provides a structured approach to testing the orchestrator with real GitHub Copilot SDK for .NET integration.
 
 ## Prerequisites
 
 ### Required Setup
-1. **GitHub Copilot CLI installed and authenticated**
-   ```bash
-   gh copilot --version
-   gh auth status
-   ```
+1. **GitHub Copilot SDK for .NET installed**
+   - Already integrated in v0.1.1 via NuGet package
+   - Verify in `src/AIMeeting.Copilot/AIMeeting.Copilot.csproj`
 
 2. **AIMeeting built in Release mode**
    ```bash
@@ -217,7 +215,7 @@ During each test, monitor:
 **Symptoms**: Console logs show "Falling back to stub mode"
 
 **Diagnosis**:
-1. Check Copilot CLI installation: `gh copilot --version`
+1. Check Copilot SDK is integrated: Verify `ICopilotClient` is implemented in `src/AIMeeting.Copilot/`
 2. Verify authentication: `gh auth status`
 3. Check network connectivity
 4. Review exception message in logs
