@@ -39,5 +39,15 @@ namespace AIMeeting.Core.Models
         /// Which agent is currently speaking (if any).
         /// </summary>
         public string? CurrentSpeakingAgentId { get; set; }
+
+        /// <summary>
+        /// Current meeting phase (for orchestrator agent).
+        /// </summary>
+        public MeetingPhase CurrentPhase { get; set; } = MeetingPhase.Initialization;
+        
+        /// <summary>
+        /// Meeting state tracked by orchestrator (hypotheses, decisions, open questions).
+        /// </summary>
+        public OrchestratorState? OrchestratorState { get; set; }
     }
 }
