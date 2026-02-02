@@ -9,6 +9,7 @@
 3. [Detailed Component Design](#detailed-component-design)
 4. [Event System](#event-system)
 5. [Turn-Taking Strategy](#turn-taking-strategy)
+    - [Orchestrator Abstraction Layer](#orchestrator-driven-v012)
 6. [File System & Locking](#file-system--locking)
 7. [Error Handling](#error-handling)
 8. [Logging Strategy](#logging-strategy)
@@ -466,6 +467,149 @@ manager.GetNextAgent();  // → "agent1" (wraps)
 - Agents "raise hand" based on relevance
 - Orchestrator routes to most appropriate agent
 - Enables interruption mechanism
+### Orchestrator-Driven (v0.1.2+)
+
+**Status**: Implemented in v0.1.2
+
+An orchestrator agent can dynamically control meeting flow by deciding which agent speaks next, when to change phases, or when to end the meeting.
+
+#### Orchestrator Abstraction Layer
+
+The orchestrator functionality is abstracted behind the `IOrchestratorDecisionMaker` interface, allowing multiple implementations:
+
+```csharp
+public interface IOrchestratorDecisionMaker
+{
+    string OrchestratorId { get; }
+    
+    Task InitializeAsync(
+        MeetingContext context, 
+        IEventBus eventBus, 
+        CancellationToken cancellationToken = default);
+    
+    Task StartAsync(CancellationToken cancellationToken = default);
+    Task StopAsync();
+}
+```
+
+#### Event-Driven Decision Flow
+
+The orchestrator communicates exclusively via the event bus:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. MeetingOrchestrator: Needs next speaker                     │
+│    - Calls: turnManager.GetNextAgent()                         │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. OrchestratorDrivenTurnManager                               │
+│    - Publishes: OrchestratorTurnRequestEvent                   │
+│    - Blocks awaiting decision                                  │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓ (via IEventBus)
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. IOrchestratorDecisionMaker (AI/Human/Scripted)             │
+│    - Receives turn request event                               │
+│    - Makes decision based on implementation                    │
+│    - Publishes: OrchestratorDecisionEvent                      │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓ (via IEventBus)
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. OrchestratorDrivenTurnManager                               │
+│    - Receives decision event                                   │
+│    - Returns next agent OR throws for phase/end                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Orchestrator Response Format
+
+Orchestrators must return structured JSON responses following this schema:
+
+```json
+{
+  "decision": "continue" | "change_phase" | "end_meeting",
+  "next_agent_id": "agent-id",
+  "new_phase": "PhaseName",
+  "end_reason": "reason",
+  "rationale": "detailed reasoning (required)"
+}
+```
+
+**Decision Types:**
+
+| Decision | Required Fields | Action |
+|----------|----------------|--------|
+| `continue` | `next_agent_id`, `rationale` | Continue meeting with specified agent |
+| `change_phase` | `new_phase`, `rationale` | Transition to new meeting phase |
+| `end_meeting` | `end_reason`, `rationale` | Terminate meeting gracefully |
+
+**Validation:** All responses are validated by `OrchestratorResponseValidator`:
+- Decision type must be valid
+- Required fields must be present
+- Agent IDs must exist in meeting context
+- Phase names must be valid (`MeetingPhase` enum)
+- Rationale is always required
+
+#### Meeting Phases
+
+Orchestrators can track and advance through structured meeting phases:
+
+```csharp
+public enum MeetingPhase
+{
+    Initialization,         // Meeting setup
+    ProblemClarification,   // Understanding the problem
+    OptionGeneration,       // Proposing solutions
+    Evaluation,             // Comparing alternatives
+    Decision,               // Making final choice
+    ExecutionPlanning,      // Planning implementation
+    Conclusion              // Wrapping up
+}
+```
+
+Phase information is tracked in `MeetingContext.CurrentPhase` and can be updated via phase change decisions.
+
+#### Orchestrator State Tracking
+
+Orchestrators can maintain structured state about the meeting:
+
+```csharp
+public class OrchestratorState
+{
+    public List<string> Hypotheses { get; set; }
+    public List<Decision> Decisions { get; set; }
+    public List<string> OpenQuestions { get; set; }
+    public Dictionary<string, string> Disagreements { get; set; }
+    public List<ActionItem> ActionItems { get; set; }
+}
+```
+
+This state is stored in `MeetingContext.OrchestratorState` and can be used to track meeting progression, unresolved items, and accumulated decisions.
+
+#### Implementation Types
+
+**v0.1.2**: AI Orchestrator
+- Uses Copilot CLI for decision-making
+- Analyzes meeting context and makes structured decisions
+- Supports stub mode for testing
+
+**v0.3+ (Planned)**: Human Orchestrator
+- Interactive CLI prompts for human decision-making
+- Real-time meeting control
+- Allows manual phase transitions and agent selection
+
+**Future**: Scripted Orchestrator
+- Pre-defined decision rules
+- Deterministic meeting flow
+- Useful for testing and reproducibility
+
+#### Backward Compatibility
+
+Orchestrator support is **optional**. If no orchestrator agent is configured, the system falls back to FIFO turn-taking. This ensures existing meetings continue to work without modification.
+
+Detection is automatic: If an agent configuration has `ROLE: Orchestrator`, it's treated as an orchestrator and the `OrchestratorDrivenTurnManager` is used instead of `FifoTurnManager`.
+
 
 ## File System & Locking
 
