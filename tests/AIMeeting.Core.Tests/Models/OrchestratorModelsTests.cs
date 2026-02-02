@@ -176,4 +176,220 @@ namespace AIMeeting.Core.Tests.Models
             Assert.Equal(MeetingPhase.Evaluation, context.CurrentPhase);
         }
     }
+
+    /// <summary>
+    /// Tests for OrchestratorMetrics model.
+    /// </summary>
+    public class OrchestratorMetricsTests
+    {
+        [Fact]
+        public void OrchestratorMetrics_InitializesWithDefaults()
+        {
+            // Act
+            var metrics = new OrchestratorMetrics();
+
+            // Assert
+            Assert.Equal(0, metrics.TotalDecisions);
+            Assert.Equal(0, metrics.SuccessfulFirstAttempts);
+            Assert.Equal(0, metrics.RetriedDecisions);
+            Assert.Equal(0, metrics.StubFallbacks);
+            Assert.Equal(0, metrics.TotalRetryAttempts);
+            Assert.Equal(0, metrics.JsonParseErrors);
+            Assert.Equal(0, metrics.ApiCallFailures);
+            Assert.Equal(0, metrics.TotalDecisionTimeMs);
+            Assert.Equal(long.MaxValue, metrics.MinDecisionTimeMs);
+            Assert.Equal(0, metrics.MaxDecisionTimeMs);
+            Assert.Equal(0, metrics.ContinueDecisions);
+            Assert.Equal(0, metrics.PhaseChangeDecisions);
+            Assert.Equal(0, metrics.EndMeetingDecisions);
+        }
+
+        [Fact]
+        public void AverageDecisionTimeMs_ReturnsZero_WhenNoDecisions()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics();
+
+            // Act & Assert
+            Assert.Equal(0, metrics.AverageDecisionTimeMs);
+        }
+
+        [Fact]
+        public void AverageDecisionTimeMs_CalculatesCorrectly()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics
+            {
+                TotalDecisions = 4,
+                TotalDecisionTimeMs = 1000
+            };
+
+            // Act & Assert
+            Assert.Equal(250, metrics.AverageDecisionTimeMs);
+        }
+
+        [Fact]
+        public void StubFallbackRate_ReturnsZero_WhenNoDecisions()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics();
+
+            // Act & Assert
+            Assert.Equal(0, metrics.StubFallbackRate);
+        }
+
+        [Fact]
+        public void StubFallbackRate_CalculatesPercentageCorrectly()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics
+            {
+                TotalDecisions = 10,
+                StubFallbacks = 3
+            };
+
+            // Act & Assert
+            Assert.Equal(30.0, metrics.StubFallbackRate);
+        }
+
+        [Fact]
+        public void RetryRate_ReturnsZero_WhenNoDecisions()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics();
+
+            // Act & Assert
+            Assert.Equal(0, metrics.RetryRate);
+        }
+
+        [Fact]
+        public void RetryRate_CalculatesPercentageCorrectly()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics
+            {
+                TotalDecisions = 20,
+                RetriedDecisions = 5
+            };
+
+            // Act & Assert
+            Assert.Equal(25.0, metrics.RetryRate);
+        }
+
+        [Fact]
+        public void AverageRetriesPerDecision_ReturnsZero_WhenNoDecisions()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics();
+
+            // Act & Assert
+            Assert.Equal(0, metrics.AverageRetriesPerDecision);
+        }
+
+        [Fact]
+        public void AverageRetriesPerDecision_CalculatesCorrectly()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics
+            {
+                TotalDecisions = 10,
+                TotalRetryAttempts = 15
+            };
+
+            // Act & Assert
+            Assert.Equal(1.5, metrics.AverageRetriesPerDecision);
+        }
+
+        [Fact]
+        public void GetSummary_ReturnsFormattedString()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics
+            {
+                TotalDecisions = 10,
+                ContinueDecisions = 7,
+                PhaseChangeDecisions = 2,
+                EndMeetingDecisions = 1,
+                SuccessfulFirstAttempts = 8,
+                RetriedDecisions = 2,
+                StubFallbacks = 0,
+                JsonParseErrors = 1,
+                ApiCallFailures = 1,
+                TotalRetryAttempts = 3,
+                TotalDecisionTimeMs = 5000,
+                MinDecisionTimeMs = 100,
+                MaxDecisionTimeMs = 1000
+            };
+
+            // Act
+            var summary = metrics.GetSummary();
+
+            // Assert
+            Assert.Contains("Total:                 10", summary);
+            Assert.Contains("Continue:              7", summary);
+            Assert.Contains("Phase Changes:         2", summary);
+            Assert.Contains("End Meeting:           1", summary);
+            Assert.Contains("First Attempt Success: 8", summary);
+            Assert.Contains("Required Retries:      2", summary);
+            Assert.Contains("Stub Fallbacks:        0", summary);
+            Assert.Contains("JSON Parse Errors:     1", summary);
+            Assert.Contains("API Call Failures:     1", summary);
+            Assert.Contains("Total Retry Attempts:  3", summary);
+            Assert.Contains("Avg Decision Time:     500ms", summary);
+            Assert.Contains("Min Decision Time:     100ms", summary);
+            Assert.Contains("Max Decision Time:     1000ms", summary);
+        }
+
+        [Fact]
+        public void GetSummary_HandlesZeroDecisions()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics();
+
+            // Act
+            var summary = metrics.GetSummary();
+
+            // Assert
+            Assert.Contains("Total:                 0", summary);
+            Assert.Contains("Avg Decision Time:     0ms", summary);
+            Assert.Contains("Min Decision Time:     0ms", summary); // long.MaxValue should display as 0
+        }
+
+        [Fact]
+        public void MetricsProperties_CanBeSetAndRead()
+        {
+            // Arrange
+            var metrics = new OrchestratorMetrics();
+
+            // Act
+            metrics.TotalDecisions = 100;
+            metrics.SuccessfulFirstAttempts = 85;
+            metrics.RetriedDecisions = 10;
+            metrics.StubFallbacks = 5;
+            metrics.TotalRetryAttempts = 15;
+            metrics.JsonParseErrors = 3;
+            metrics.ApiCallFailures = 7;
+            metrics.TotalDecisionTimeMs = 50000;
+            metrics.MinDecisionTimeMs = 50;
+            metrics.MaxDecisionTimeMs = 2000;
+            metrics.ContinueDecisions = 90;
+            metrics.PhaseChangeDecisions = 8;
+            metrics.EndMeetingDecisions = 2;
+
+            // Assert
+            Assert.Equal(100, metrics.TotalDecisions);
+            Assert.Equal(85, metrics.SuccessfulFirstAttempts);
+            Assert.Equal(10, metrics.RetriedDecisions);
+            Assert.Equal(5, metrics.StubFallbacks);
+            Assert.Equal(15, metrics.TotalRetryAttempts);
+            Assert.Equal(3, metrics.JsonParseErrors);
+            Assert.Equal(7, metrics.ApiCallFailures);
+            Assert.Equal(50000, metrics.TotalDecisionTimeMs);
+            Assert.Equal(50, metrics.MinDecisionTimeMs);
+            Assert.Equal(2000, metrics.MaxDecisionTimeMs);
+            Assert.Equal(90, metrics.ContinueDecisions);
+            Assert.Equal(8, metrics.PhaseChangeDecisions);
+            Assert.Equal(2, metrics.EndMeetingDecisions);
+        }
+    }
 }
